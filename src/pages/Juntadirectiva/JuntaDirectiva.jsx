@@ -3,6 +3,17 @@ import { useNavigate } from "react-router-dom";
 import logo from "../../assets/Logo.png";
 import bgBolivar from "../../assets/Pzo.jpg";
 import Navbar2 from "../../Components/Navbar_sc";
+import francisco from "../../assets/Junta_directiva/francisco.png"
+import graciela from "../../assets/Junta_directiva/Graciela.png"
+import margaret from "../../assets/Junta_directiva/Margaret.png"
+import margot from "../../assets/Junta_directiva/Margot.png"
+import neohomar from "../../assets/Junta_directiva/Neohomar.png"
+import pedro from "../../assets/Junta_directiva/Pedro.png"
+import Romelina from "../../assets/Junta_directiva/Romelia.png"
+import Yorjharry from "../../assets/Junta_directiva/Yorjharry.png"
+import Rina from "../../assets/Junta_directiva/Rina.png"
+import Zulay from "../../assets/Junta_directiva/Zulay.png"
+import Pedro_C from "../../assets/Junta_directiva/Pedro_C.png"
 
 // 1. EL HOOK DEBE ESTAR AQUÍ AFUERA
 const useScrollReveal = () => {
@@ -27,16 +38,17 @@ const useScrollReveal = () => {
 
 // Datos de la directiva
 const directiva = [
-  { nombre: "Francisco Piñango", cargo: "Presidente", foto: "https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&q=80&w=400&h=400" },
-  { nombre: "Zulay Amaya", cargo: "Vice-Presidente", foto: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=400&h=400" },
-  { nombre: "Margaret Vásquez", cargo: "Directora General", foto: "https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&q=80&w=400&h=400" },
-  { nombre: "Romelina Rodríguez", cargo: "Directora de Finanzas", foto: "https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&q=80&w=400&h=400" },
-  { nombre: "Margot Castro", cargo: "Directora de Asuntos Legales", foto: "https://images.unsplash.com/photo-1551836022-d5d88e9218df?auto=format&fit=crop&q=80&w=400&h=400" },
-  { nombre: "Pedro Vallenilla", cargo: "Director de Comunicaciones", foto: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80&w=400&h=400" },
-  { nombre: "Graciela Ledezma", cargo: "Director de Formación", foto: "https://images.unsplash.com/photo-1567532939604-b6b5b0db2604?auto=format&fit=crop&q=80&w=400&h=400" },
-  { nombre: "Yorjharry Vicent", cargo: "Director de Eventos", foto: "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&q=80&w=400&h=400" },
-  { nombre: "Rina Centeno", cargo: "Directora de Responsabilidad Social", foto: "https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&q=80&w=400&h=400"},
-  { nombre: "Pedro Castro", cargo: "Director de Relaciones Interinstitucionales", foto: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=400&h=400" },
+  { nombre: "Francisco Piñango", cargo: "Presidente", foto: francisco },
+  { nombre: "Zulay Amaya", cargo: "Vice-Presidente", foto: Zulay },
+  { nombre: "Margaret Vásquez", cargo: "Directora General", foto: margaret },
+  { nombre: "Romelina Rodríguez", cargo: "Directora de Finanzas", foto:Romelina },
+  { nombre: "Margot Castro", cargo: "Directora de Asuntos Legales", foto: margot},
+  { nombre: "Pedro Vallenilla", cargo: "Director de Comunicaciones", foto: pedro },
+  { nombre: "Graciela Ledezma", cargo: "Director de Formación", foto: graciela },
+  { nombre: "Yorjharry Vicent", cargo: "Director de Eventos", foto: Yorjharry },
+  { nombre: "Rina Centeno", cargo: "Directora de Responsabilidad Social", foto: Rina},
+  { nombre: "Pedro Castro", cargo: "Director de Relaciones Interinstitucionales", foto: Pedro_C},
+  { nombre: "Neohomar Longart", cargo: "Director de Atención al Gremiado", foto: neohomar},
 ];
 
 const DirectorCard = ({ nombre, cargo, foto, index }) => {
