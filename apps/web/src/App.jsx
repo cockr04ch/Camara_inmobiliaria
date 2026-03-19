@@ -6,14 +6,14 @@ import FormacionPage from './pages/formacion/FormacionPage'
 import MisionVisionPage from './pages/mision-vision/MisionVisionPage'
 import JuntaDirectivaPage from './pages/junta-directiva/JuntaDirectivaPage'
 import HistoriaPage from './pages/historia/HistoriaPage'
-import CivPage from './pages/civ/CivPage'
+import CivPage from './pages/CIV/CivPage'
 import AdminPage from './pages/admin/AdminPage'
 import DireccionPage from './pages/direccion/DireccionPage'
 import PropositoPage from './pages/proposito/PropositoPage'
 
 export default function App() {
   return (
-    <BrowserRouter basename='/Camara_inmobiliaria'>
+    <BrowserRouter>
       <Routes>
         <Route path='/' element={<LandingPage />} />
         <Route path='/cursos' element={<FormacionPage />} />

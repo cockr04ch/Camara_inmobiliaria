@@ -30,6 +30,5 @@
         "standard": "^17.1.2",
         "typescript-eslint": "^8.56.1",
         "vite": "^7.3.1"
-    },
-    "packageManager": "pnpm@10.30.0"
+    }
 }
