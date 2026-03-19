@@ -1,8 +1,8 @@
 import React, { useRef, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import logo from '../landing/assets/Logo3.png'
-import bgBolivar from '../landing/assets/Pzo.jpg'
-import Navbar2 from '../landing/components/Navbar_sc'
+import logo from '../assets/Logo3.png'
+import bgBolivar from '../assets/Pzo.jpg'
+import Navbar2 from '../components/Navbar_sc'
 
 const useScrollReveal = () => {
   const [ref, setRef] = useState(null)

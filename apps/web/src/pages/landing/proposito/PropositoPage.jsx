@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
-import bgBolivar from '../landing/assets/Pzo.jpg'
-import Navbar2 from '../landing/components/Navbar_sc'
+import bgBolivar from '../assets/Pzo.jpg'
+import Navbar2 from '../components/Navbar_sc'
 
 const useScrollReveal = () => {
   const [ref, setRef] = useState(null)

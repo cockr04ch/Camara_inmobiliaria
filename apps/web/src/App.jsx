@@ -2,14 +2,14 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import LandingPage from './pages/landing/LandingPage'
 
 // Pages
-import FormacionPage from './pages/formacion/FormacionPage'
-import MisionVisionPage from './pages/mision-vision/MisionVisionPage'
-import JuntaDirectivaPage from './pages/junta-directiva/JuntaDirectivaPage'
-import HistoriaPage from './pages/historia/HistoriaPage'
-import CivPage from './pages/CIV/CivPage'
+import FormacionPage from './pages/landing/formacion/FormacionPage'
+import MisionVisionPage from './pages/landing/mision-vision/MisionVisionPage'
+import JuntaDirectivaPage from './pages/landing/junta-directiva/JuntaDirectivaPage'
+import HistoriaPage from './pages/landing/historia/HistoriaPage'
+import CivPage from './pages/landing/CIV/CivPage'
 import AdminPage from './pages/admin/AdminPage'
-import DireccionPage from './pages/direccion/DireccionPage'
-import PropositoPage from './pages/proposito/PropositoPage'
+import DireccionPage from './pages/landing/direccion/DireccionPage'
+import PropositoPage from './pages/landing/proposito/PropositoPage'
 
 export default function App() {
   return (
