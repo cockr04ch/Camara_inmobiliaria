@@ -39,14 +39,14 @@ const useScrollReveal = () => {
 // Datos de la directiva
 const directiva = [
   { nombre: "Francisco Piñango", cargo: "Presidente", foto: francisco },
-  { nombre: "Zulay Amaya", cargo: "Vice-Presidente", foto: Zulay },
+  { nombre: "Zulay Amaya", cargo: "Vicepresidenta", foto: Zulay },
   { nombre: "Margaret Vásquez", cargo: "Directora General", foto: margaret },
   { nombre: "Romelina Rodríguez", cargo: "Directora de Finanzas", foto:Romelina },
   { nombre: "Margot Castro", cargo: "Directora de Asuntos Legales", foto: margot},
   { nombre: "Pedro Vallenilla", cargo: "Director de Comunicaciones", foto: pedro },
-  { nombre: "Graciela Ledezma", cargo: "Director de Formación", foto: graciela },
+  { nombre: "Graciela Ledezma", cargo: "Directora de Formación", foto: graciela },
   { nombre: "Yorjharry Vicent", cargo: "Director de Eventos", foto: Yorjharry },
-  { nombre: "Rina Centeno", cargo: "Directora de Responsabilidad Social", foto: Rina},
+  { nombre: "Rina Centeno", cargo: "Directora de Labor Social", foto: Rina},
   { nombre: "Pedro Castro", cargo: "Director de Relaciones Interinstitucionales", foto: Pedro_C},
   { nombre: "Neohomar Longart", cargo: "Director de Atención al Gremiado", foto: neohomar},
 ];
@@ -100,7 +100,7 @@ export default function EquipoDirectivo() {
           <h1 style={{ animationDelay: "0.4s", opacity: 0 }} className="text-5xl lg:text-7xl font-black tracking-tighter animate-header-text">
             Junta <span className="text-emerald-500 italic">Directiva</span>
           </h1>
-          <p className="text-emerald-100/60 text-sm tracking-widest uppercase font-medium animate-header-text" style={{ animationDelay: "0.5s", opacity: 0 }} >Gestión 2024 - 2026</p>
+          <p className="text-emerald-100/60 text-sm tracking-widest uppercase font-medium animate-header-text" style={{ animationDelay: "0.5s", opacity: 0 }} >Gestión 2025 - 2027</p>
         </div>
       </header>
 
