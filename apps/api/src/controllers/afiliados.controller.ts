@@ -173,6 +173,59 @@ export const aprobarAfiliado = async (req: Request, res: Response) => {
   }
 };
 
+export const rechazarAfiliado = async (req: Request, res: Response) => {
+  try {
+    const id = req.params.id as string;
+
+    // 1. Verificar si existe y si su estatus es Preinscrito
+    const resultAgremiado = await db.execute({
+      sql: 'SELECT * FROM agremiados WHERE id_agremiado = ?',
+      args: [id]
+    });
+
+    const agremiado = resultAgremiado.rows[0];
+
+    if (!agremiado) {
+      return res.status(404).json({
+        success: false,
+        message: 'El candidato no fue encontrado'
+      });
+    }
+
+    if (agremiado.estatus !== 'Preinscrito') {
+      return res.status(400).json({
+        success: false,
+        message: 'Solo los candidatos con estatus "Preinscrito" pueden ser rechazados'
+      });
+    }
+
+    // 2. Actualizar a estatus Suspendido (ya que 'Rechazado' no está en el CHECK constraint original de initdb.ts)
+    // En initdb.ts el estatus es CHECK (estatus IN ('Preinscrito','CIBIR','Moroso','Suspendido'))
+    const fechaCambio = new Date().toISOString();
+    
+    // NOTA: Para no romper la DB actual cambiamos el estatus a 'Suspendido', mapeado como 'Rechazado' en la UI
+    const updateResult = await db.execute({
+      sql: `UPDATE agremiados 
+            SET estatus = 'Suspendido', fecha_ultimo_cambio_estatus = ?
+            WHERE id_agremiado = ? RETURNING *`,
+      args: [fechaCambio, id]
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: 'Candidato ha sido rechazado exitosamente',
+      data: updateResult.rows[0]
+    });
+
+  } catch (error) {
+    console.error('Error al rechazar candidato:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Error interno del servidor al rechazar al candidato'
+    });
+  }
+};
+
 // ==========================================
 // RUTAS PÚBLICAS
 // ==========================================
@@ -212,6 +265,68 @@ export const buscarAfiliadosPublic = async (req: Request, res: Response) => {
     return res.status(500).json({
       success: false,
       message: 'Error interno del servidor al realizar la búsqueda pública'
+    });
+  }
+};
+
+// ==========================================
+// NUEVO ENDPOINT PARA LA UI DE CIBIR (Tabs)
+// ==========================================
+
+export const getSolicitudesCibir = async (req: Request, res: Response) => {
+  try {
+    const tab = (req.query.tab as string) || 'todos'; // todos | pendiente | aprobado | rechazado
+
+    // Mapeo de Tabs a los estados reales en BD
+    // Pendiente -> Preinscrito
+    // Aprobado -> CIBIR
+    // Rechazado -> Suspendido (Para obedecer la base de datos estricta SQLite)
+    
+    // Primero, obtener los contadores para los badges de la UI
+    const countSql = `
+      SELECT 
+        SUM(CASE WHEN estatus IN ('Preinscrito', 'CIBIR', 'Suspendido') THEN 1 ELSE 0 END) as todos,
+        SUM(CASE WHEN estatus = 'Preinscrito' THEN 1 ELSE 0 END) as pendiente,
+        SUM(CASE WHEN estatus = 'CIBIR' THEN 1 ELSE 0 END) as aprobado,
+        SUM(CASE WHEN estatus = 'Suspendido' THEN 1 ELSE 0 END) as rechazado
+      FROM agremiados
+    `;
+    const countResult = await db.execute({ sql: countSql, args: [] });
+    const counts = countResult.rows[0];
+
+    // Luego, obtener la lista filtrada según el tab seleccionado
+    let sql = `SELECT * FROM agremiados WHERE estatus IN ('Preinscrito', 'CIBIR', 'Suspendido')`;
+    const args: any[] = [];
+
+    if (tab === 'pendiente') {
+      sql = `SELECT * FROM agremiados WHERE estatus = 'Preinscrito'`;
+    } else if (tab === 'aprobado') {
+      sql = `SELECT * FROM agremiados WHERE estatus = 'CIBIR'`;
+    } else if (tab === 'rechazado') {
+      sql = `SELECT * FROM agremiados WHERE estatus = 'Suspendido'`;
+    }
+
+    sql += ' ORDER BY fecha_registro DESC';
+
+    const listResult = await db.execute({ sql, args });
+
+    return res.status(200).json({
+      success: true,
+      meta: {
+        counts: {
+          todos: counts.todos || 0,
+          pendiente: counts.pendiente || 0,
+          aprobado: counts.aprobado || 0,
+          rechazado: counts.rechazado || 0,
+        }
+      },
+      data: listResult.rows
+    });
+  } catch (error) {
+    console.error('Error al obtener solicitudes CIBIR:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Error interno del servidor al obtener las solicitudes CIBIR'
     });
   }
 };

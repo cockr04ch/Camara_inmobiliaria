@@ -6,11 +6,12 @@ import FormacionPage from './pages/landing/formacion/FormacionPage'
 import MisionVisionPage from './pages/landing/mision-vision/MisionVisionPage'
 import JuntaDirectivaPage from './pages/landing/junta-directiva/JuntaDirectivaPage'
 import HistoriaPage from './pages/landing/historia/HistoriaPage'
-import CivPage from './pages/landing/CIV/CivPage'
+import CivPage from './pages/landing/courses/CIV/CivPage'
 import AdminPage from './pages/admin/AdminPage'
 import DireccionPage from './pages/landing/direccion/DireccionPage'
 import PropositoPage from './pages/landing/proposito/PropositoPage'
 import AfiliadoPage from './pages/afiliado/afiliadoPage'
+import CibirPage from './pages/landing/courses/Cibir/CibirPage'
 
 export default function App() {
   return (
@@ -27,6 +28,7 @@ export default function App() {
         <Route path='/proposito' element={<PropositoPage />} />
         <Route path='/admin' element={<AdminPage />} />
         <Route path='/afiliado' element={<AfiliadoPage />} />
+        <Route path='/cibir' element={<CibirPage />} />
       </Routes>
     </BrowserRouter>
   )

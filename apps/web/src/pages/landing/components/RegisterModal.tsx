@@ -1,6 +1,6 @@
-import React from 'react'
+import React from 'react';
 
-export default function RegisterModal({ onClose }) {
+export default function RegisterModal({ onClose }: { onClose: () => void }) {
   return (
     <div className='fixed inset-0 z-[100] flex items-center justify-center p-4'>
       <div

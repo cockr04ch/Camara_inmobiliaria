@@ -1,4 +1,6 @@
-export default function LoginModal({ onClose }) {
+import React from 'react';
+
+export default function LoginModal({ onClose }: { onClose: () => void }) {
   return (
     <div className='fixed inset-0 z-[100] flex items-center justify-center p-4'>
       <div
