@@ -56,6 +56,7 @@ const Counter = ({ end, duration = 2000, suffix = "" }) => {
 };
 
 const FormacionSection = ({ revealTitle, revealPanels }) => {
+  const route = useNavigate()
   const [currentIndex, setCurrentIndex] = useState(0);
 
   const cursos = [
@@ -63,25 +64,29 @@ const FormacionSection = ({ revealTitle, revealPanels }) => {
       id: "PREANI", 
       titulo: "Programa de Estudios Académicos", 
       sub: "Inmobiliarios Nivel Inicial",
-      img: "https://images.unsplash.com/photo-1524178232363-1fb2b075b655?auto=format&fit=crop&q=80&w=1200"
+      img: "https://images.unsplash.com/photo-1524178232363-1fb2b075b655?auto=format&fit=crop&q=80&w=1200",
+      route:'/preani'
     },
     { 
       id: "CIBIR", 
       titulo: "Curso Intensivo de Bienes Raíces", 
       sub: "Capacitación Técnica Avanzada",
-      img: "https://observatorio.tec.mx/wp-content/uploads/2020/04/CC3B3mohacerunaclaseenvivoefectivaysincomplicaciones.jpg"
+      img: "https://observatorio.tec.mx/wp-content/uploads/2020/04/CC3B3mohacerunaclaseenvivoefectivaysincomplicaciones.jpg",
+      route:'/cibir'
     },
     { 
       id: "PEGI", 
       titulo: "Programa Ejecutivo", 
       sub: "Gestión Inmobiliaria Estratégica",
-      img: "https://static.studyusa.com/article/aws_bEqqGGmAziTXnqDcljdFyWoFhYcnEMGI_sm_2x.jpg?format=webp"
+      img: "https://static.studyusa.com/article/aws_bEqqGGmAziTXnqDcljdFyWoFhYcnEMGI_sm_2x.jpg?format=webp",
+      route:'/pegi'
     }, 
     { 
       id: "PADI", 
       titulo: "Programa de Administración", 
       sub: "Administración en inmuebles",
-      img: "https://cms.usanmarcos.ac.cr/sites/default/files/tips-para-el-primer-dia-de-clases.png"
+      img: "https://cms.usanmarcos.ac.cr/sites/default/files/tips-para-el-primer-dia-de-clases.png",
+      route:'/pagi'
     }
   ];
 
@@ -171,7 +176,7 @@ const FormacionSection = ({ revealTitle, revealPanels }) => {
                 </div>
 
                 <div className="pt-4">
-                  <button className="w-full py-4 bg-white/20 backdrop-blur-md border border-white/30 rounded-2xl text-white font-bold text-xs uppercase tracking-widest transition-all hover:bg-emerald-500 hover:border-emerald-500 hover:text-[#022c22] shadow-xl">
+                  <button onClick={()=>{route(curso.route)}} className="w-full py-4 bg-white/20 backdrop-blur-md border border-white/30 rounded-2xl text-white font-bold text-xs uppercase tracking-widest transition-all hover:bg-emerald-500 hover:border-emerald-500 hover:text-[#022c22] shadow-xl">
                     Ver detalles del programa
                   </button>
                 </div>
