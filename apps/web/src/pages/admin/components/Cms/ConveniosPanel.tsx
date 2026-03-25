@@ -1,20 +1,28 @@
 import React, { useState, useEffect, useCallback } from 'react'
-import { api, FormField, Input, BtnPrimary, BtnDanger, BtnSecondary, ListDetail } from './CmsShared'
+import { api, FormField, Input, BtnPrimary, BtnDanger, BtnSecondary, ListDetail } from '@/pages/admin/components/Cms/CmsShared'
+
+interface ConvenioItem {
+  id: string | number;
+  nombre: string;
+  logo_url: string;
+  orden: number;
+  activo: boolean | number;
+}
 
 export const ConveniosPanel = () => {
-  const [items, setItems] = useState<any[]>([])
+  const [items, setItems] = useState<ConvenioItem[]>([])
   const [loading, setLoading] = useState(true)
-  const [selectedId, setSelectedId] = useState<any>(null)
+  const [selectedId, setSelectedId] = useState<string | number | null>(null)
   const [form, setForm] = useState({ nombre: '', logo_url: '', orden: 0, activo: true })
   const [saving, setSaving] = useState(false)
 
   const load = useCallback(async () => { setLoading(true); const data = await api.get('/api/cms/convenios'); if (data.success) setItems(data.data); setLoading(false) }, [])
   useEffect(() => { load() }, [load])
-  const openEdit = (item: any) => { setSelectedId(item.id); setForm({ nombre: item.nombre, logo_url: item.logo_url, orden: item.orden, activo: item.activo === 1 }) }
+  const openEdit = (item: ConvenioItem) => { setSelectedId(item.id); setForm({ nombre: item.nombre, logo_url: item.logo_url, orden: item.orden, activo: item.activo === 1 }) }
   const openNew = () => { setSelectedId('new'); setForm({ nombre: '', logo_url: '', orden: 0, activo: true }) }
   const save = async () => { setSaving(true); if (selectedId === 'new') await api.post('/api/cms/convenios', form); else await api.put(`/api/cms/convenios/${selectedId}`, form); setSaving(false); setSelectedId(null); load() }
-  const remove = async (id: any) => { if (!confirm('¿Eliminar?')) return; await api.delete(`/api/cms/convenios/${id}`); setSelectedId(null); load() }
-  const f = (k: string) => (e: any) => setForm(p => ({ ...p, [k]: e.target.type === 'checkbox' ? e.target.checked : e.target.type === 'number' ? Number(e.target.value) : e.target.value }))
+  const remove = async (id: string | number) => { if (!confirm('¿Eliminar?')) return; await api.delete(`/api/cms/convenios/${id}`); setSelectedId(null); load() }
+  const f = (k: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement>) => setForm(p => ({ ...p, [k]: e.target.type === 'checkbox' ? e.target.checked : e.target.type === 'number' ? Number(e.target.value) : e.target.value }))
 
   const formBody = () => (
     <div className="flex flex-col gap-4 bg-white rounded-2xl p-5 border border-gray-100">

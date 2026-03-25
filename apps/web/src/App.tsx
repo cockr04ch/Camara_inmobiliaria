@@ -1,17 +1,17 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
-import LandingPage from './pages/landing/LandingPage'
+import LandingPage from '@/pages/landing/LandingPage'
 
 // Pages
-import FormacionPage from './pages/landing/formacion/FormacionPage'
-import MisionVisionPage from './pages/landing/mision-vision/MisionVisionPage'
-import JuntaDirectivaPage from './pages/landing/junta-directiva/JuntaDirectivaPage'
-import HistoriaPage from './pages/landing/historia/HistoriaPage'
-import CivPage from './pages/landing/courses/CIV/CivPage'
-import AdminPage from './pages/admin/AdminPage'
-import DireccionPage from './pages/landing/direccion/DireccionPage'
-import PropositoPage from './pages/landing/proposito/PropositoPage'
-import AfiliadoPage from './pages/afiliado/afiliadoPage'
-import CibirPage from './pages/landing/courses/Cibir/CibirPage'
+import FormacionPage from '@/pages/landing/formacion/FormacionPage'
+import MisionVisionPage from '@/pages/landing/mision-vision/MisionVisionPage'
+import JuntaDirectivaPage from '@/pages/landing/junta-directiva/JuntaDirectivaPage'
+import HistoriaPage from '@/pages/landing/historia/HistoriaPage'
+import CivPage from '@/pages/landing/courses/CIV/CivPage'
+import AdminPage from '@/pages/admin/AdminPage'
+import DireccionPage from '@/pages/landing/direccion/DireccionPage'
+import PropositoPage from '@/pages/landing/proposito/PropositoPage'
+import AfiliadoPage from '@/pages/afiliado/afiliadoPage'
+import CibirPage from '@/pages/landing/courses/CIBIR/CibirPage'
 
 export default function App() {
   return (

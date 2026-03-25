@@ -1,7 +1,7 @@
 import { useState } from 'react'
-import CmsHeader from './components/CmsHeader'
-import CmsAside from './components/CmsAside'
-import CmsContent from './components/CmsContent'
+import CmsHeader from '@/pages/admin/components/CmsHeader'
+import CmsAside from '@/pages/admin/components/CmsAside'
+import CmsContent from '@/pages/admin/components/CmsContent'
 
 const NAV_META: Record<string, { title: string; subtitle: string }> = {
   dashboard: { title: 'Dashboard', subtitle: 'Resumen financiero y actividad reciente' },

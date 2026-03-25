@@ -1,10 +1,10 @@
 import React from 'react'
-import { NoticiasPanel } from './NoticiasPanel'
-import { CursosPanel } from './CursosPanel'
-import { ConveniosPanel } from './ConveniosPanel'
-import { DirectivaPanel } from './DirectivaPanel'
-import { HitosPanel } from './HitosPanel'
-import { ConfigPanel } from './ConfigPanel'
+import { NoticiasPanel } from '@/pages/admin/components/Cms/NoticiasPanel'
+import { CursosPanel } from '@/pages/admin/components/Cms/CursosPanel'
+import { ConveniosPanel } from '@/pages/admin/components/Cms/ConveniosPanel'
+import { DirectivaPanel } from '@/pages/admin/components/Cms/DirectivaPanel'
+import { HitosPanel } from '@/pages/admin/components/Cms/HitosPanel'
+import { ConfigPanel } from '@/pages/admin/components/Cms/ConfigPanel'
 
 export type CmsTab = 'noticias' | 'cursos' | 'convenios' | 'directiva' | 'hitos' | 'config'
 

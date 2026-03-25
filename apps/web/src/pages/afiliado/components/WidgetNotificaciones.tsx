@@ -1,6 +1,6 @@
 import React from 'react';
 import { Bell, AlertTriangle, Gavel } from 'lucide-react';
-import DashboardCard from './DashboardCard';
+import DashboardCard from '@/pages/afiliado/components/DashboardCard';
 
 interface Notification {
   type: 'danger' | 'info';

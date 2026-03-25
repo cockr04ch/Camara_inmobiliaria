@@ -1,10 +1,20 @@
 import React, { useState, useEffect, useCallback } from 'react'
-import { api, FormField, Input, BtnPrimary, BtnDanger, BtnSecondary, ListDetail } from './CmsShared'
+import { api, FormField, Input, BtnPrimary, BtnDanger, BtnSecondary, ListDetail } from '@/pages/admin/components/Cms/CmsShared'
+
+interface CursoItem {
+  id: string | number;
+  codigo: string;
+  titulo: string;
+  subtitulo: string;
+  imagen_url: string;
+  orden: number;
+  activo: number | boolean;
+}
 
 export const CursosPanel = () => {
-  const [items, setItems] = useState<any[]>([])
+  const [items, setItems] = useState<CursoItem[]>([])
   const [loading, setLoading] = useState(true)
-  const [selectedId, setSelectedId] = useState<any>(null)
+  const [selectedId, setSelectedId] = useState<string | number | null>(null)
   const [form, setForm] = useState({ codigo: '', titulo: '', subtitulo: '', imagen_url: '', orden: 0, activo: true })
   const [saving, setSaving] = useState(false)
 
@@ -17,7 +27,7 @@ export const CursosPanel = () => {
 
   useEffect(() => { load() }, [load])
 
-  const openEdit = (item: any) => {
+  const openEdit = (item: CursoItem) => {
     setSelectedId(item.id)
     setForm({ codigo: item.codigo, titulo: item.titulo, subtitulo: item.subtitulo || '', imagen_url: item.imagen_url || '', orden: item.orden, activo: item.activo === 1 })
   }
@@ -28,11 +38,11 @@ export const CursosPanel = () => {
     else await api.put(`/api/cms/cursos/${selectedId}`, form)
     setSaving(false); setSelectedId(null); load()
   }
-  const remove = async (id: any) => {
+  const remove = async (id: string | number) => {
     if (!confirm('¿Eliminar?')) return
     await api.delete(`/api/cms/cursos/${id}`); setSelectedId(null); load()
   }
-  const f = (k: string) => (e: any) => setForm(p => ({ ...p, [k]: e.target.type === 'checkbox' ? e.target.checked : e.target.type === 'number' ? Number(e.target.value) : e.target.value }))
+  const f = (k: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement>) => setForm(p => ({ ...p, [k]: e.target.type === 'checkbox' ? e.target.checked : e.target.type === 'number' ? Number(e.target.value) : e.target.value }))
 
   const formBody = () => (
     <div className="flex flex-col gap-4 bg-white rounded-2xl p-5 border border-gray-100">

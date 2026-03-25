@@ -1,11 +1,11 @@
 import React from 'react'
 
-export const API = (import.meta as any).env?.VITE_API_URL || 'http://localhost:3000'
+export const API = import.meta.env?.VITE_API_URL || 'http://localhost:3000'
 
 export const api = {
   get: (path: string) => fetch(`${API}${path}`).then(r => r.json()),
-  post: (path: string, body: any) => fetch(`${API}${path}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }).then(r => r.json()),
-  put: (path: string, body: any) => fetch(`${API}${path}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }).then(r => r.json()),
+  post: <T,>(path: string, body: T) => fetch(`${API}${path}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }).then(r => r.json()),
+  put: <T,>(path: string, body: T) => fetch(`${API}${path}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }).then(r => r.json()),
   delete: (path: string) => fetch(`${API}${path}`, { method: 'DELETE' }).then(r => r.json()),
 }
 
@@ -31,19 +31,25 @@ export const Textarea = (props: React.TextareaHTMLAttributes<HTMLTextAreaElement
   />
 )
 
-export const BtnPrimary = ({ onClick, children, disabled }: any) => (
+interface BtnProps {
+  onClick?: () => void;
+  children: React.ReactNode;
+  disabled?: boolean;
+}
+
+export const BtnPrimary = ({ onClick, children, disabled }: BtnProps) => (
   <button onClick={onClick} disabled={disabled} className="px-4 py-2 rounded-xl bg-[#00D084] text-white text-xs font-semibold hover:bg-[#00B870] transition-colors disabled:opacity-50">
     {children}
   </button>
 )
 
-export const BtnDanger = ({ onClick, children }: any) => (
+export const BtnDanger = ({ onClick, children }: BtnProps) => (
   <button onClick={onClick} className="px-3 py-1.5 rounded-xl bg-red-50 text-red-500 text-xs font-semibold hover:bg-red-100 transition-colors">
     {children}
   </button>
 )
 
-export const BtnSecondary = ({ onClick, children }: any) => (
+export const BtnSecondary = ({ onClick, children }: BtnProps) => (
   <button onClick={onClick} className="px-3 py-1.5 rounded-xl bg-slate-100 text-slate-600 text-xs font-semibold hover:bg-slate-200 transition-colors">
     {children}
   </button>
@@ -53,7 +59,7 @@ export const Loading = () => (
   <div className="flex items-center justify-center h-32 text-xs text-slate-400 font-semibold uppercase tracking-widest">Cargando...</div>
 )
 
-export function ListDetail<T extends { id?: any }>({
+export function ListDetail<T extends { id?: string | number }>({
   items,
   loading,
   renderRow,
@@ -69,8 +75,8 @@ export function ListDetail<T extends { id?: any }>({
   renderDetail: (item: T) => React.ReactNode
   renderForm: () => React.ReactNode
   onNew: () => void
-  selectedId: any
-  setSelectedId: (id: any) => void
+  selectedId: string | number | null
+  setSelectedId: (id: string | number | null) => void
 }) {
   const selected = items.find(i => String(i.id) === String(selectedId)) ?? null
 
@@ -80,7 +86,7 @@ export function ListDetail<T extends { id?: any }>({
       <div className={['flex flex-col bg-white border-r border-gray-100 overflow-hidden flex-shrink-0 w-full sm:w-[280px] md:w-[320px]', selected ? 'hidden sm:flex' : 'flex'].join(' ')}>
         <div className="flex-1 overflow-y-auto divide-y divide-gray-50">
           {loading ? <Loading /> : items.map(item => (
-            <button key={item.id} onClick={() => setSelectedId(item.id)} className={['w-full text-left px-4 py-3 transition-colors', String(selectedId) === String(item.id) ? 'bg-[#E9FAF4]' : 'hover:bg-slate-50'].join(' ')}>
+            <button key={item.id} onClick={() => setSelectedId(item.id ?? null)} className={['w-full text-left px-4 py-3 transition-colors', String(selectedId) === String(item.id) ? 'bg-[#E9FAF4]' : 'hover:bg-slate-50'].join(' ')}>
               {renderRow(item, String(selectedId) === String(item.id))}
             </button>
           ))}

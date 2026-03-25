@@ -9,11 +9,11 @@ import {
   CheckCircle,
   HelpCircle,
 } from 'lucide-react';
-import DashboardSidebar from './components/DashboardSidebar';
-import DashboardHeader from './components/DashboardHeader';
-import WidgetFinanciero from './components/WidgetFinanciero';
-import WidgetNotificaciones from './components/WidgetNotificaciones';
-import WidgetAcademico from './components/WidgetAcademico';
+import DashboardSidebar from '@/pages/afiliado/components/DashboardSidebar';
+import DashboardHeader from '@/pages/afiliado/components/DashboardHeader';
+import WidgetFinanciero from '@/pages/afiliado/components/WidgetFinanciero';
+import WidgetNotificaciones from '@/pages/afiliado/components/WidgetNotificaciones';
+import WidgetAcademico from '@/pages/afiliado/components/WidgetAcademico';
 
 const NAV_ITEMS = [
   { icon: LayoutDashboard, label: 'Resumen / Inicio' },

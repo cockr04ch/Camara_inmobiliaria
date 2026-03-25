@@ -1,6 +1,6 @@
 import React from 'react';
 import { CreditCard, Download } from 'lucide-react';
-import DashboardCard from './DashboardCard';
+import DashboardCard from '@/pages/afiliado/components/DashboardCard';
 
 interface WidgetFinancieroProps {
   balanceUsd?: string;

@@ -1,21 +1,21 @@
 import React, { useRef, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import logo from '../assets/Logo3.png'
-import bgBolivar from '../assets/Pzo.jpg'
-import Navbar2 from '../components/Navbar_sc'
+import logo from '@/pages/landing/assets/Logo3.png'
+import bgBolivar from '@/pages/landing/assets/Pzo.jpg'
+import Navbar2 from '@/pages/landing/components/Navbar_sc'
 
 const useScrollReveal = () => {
-  const [ref, setRef] = useState(null)
+  const [node, setNode] = useState<HTMLElement | null>(null)
   useEffect(() => {
-    if (!ref) return
+    if (!node) return
     const observer = new IntersectionObserver(
       ([entry]) => { if (entry.isIntersecting) entry.target.classList.add('active') },
       { threshold: 0.1 }
     )
-    observer.observe(ref)
+    observer.observe(node)
     return () => observer.disconnect()
-  }, [ref])
-  return setRef
+  }, [node])
+  return (element: HTMLElement | null) => setNode(element)
 }
 
 const directiva = [
@@ -31,7 +31,7 @@ const directiva = [
   { nombre: 'Pedro Castro', cargo: 'Director de Relaciones Interinstitucionales', foto: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=400&h=400' }
 ]
 
-const DirectorCard = ({ nombre, cargo, foto, index }) => {
+const DirectorCard = ({ nombre, cargo, foto, index }: { nombre: string, cargo: string, foto: string, index: number }) => {
   const setReveal = useScrollReveal()
   return (
     <div ref={setReveal} style={{ transitionDelay: `${index * 0.1}s` }} className='reveal-on-scroll group bg-white rounded-[2.5rem] p-5 border border-emerald-100 shadow-sm hover:shadow-xl hover:shadow-emerald-900/5 transition-all duration-700'>

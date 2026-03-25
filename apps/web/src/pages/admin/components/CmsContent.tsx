@@ -1,9 +1,9 @@
 import React from 'react'
-import CmsDashboard from './dashboard/CmsDashboard'
-import CmsArticlesPanel from './Cms/CmsArticlesPanel'
-import FormacionPanel from './Formacion/FormacionPanel'
-import AnalyticsPanel from './Analytics/AnalyticsPanel'
-import UsersPanel from './Users/UsersPanel'
+import CmsDashboard from '@/pages/admin/components/dashboard/CmsDashboard'
+import CmsArticlesPanel from '@/pages/admin/components/Cms/CmsArticlesPanel'
+import FormacionPanel from '@/pages/admin/components/Formacion/FormacionPanel'
+import AnalyticsPanel from '@/pages/admin/components/Analytics/AnalyticsPanel'
+import UsersPanel from '@/pages/admin/components/Users/UsersPanel'
 
 // ─── Placeholder panels ───────────────────────────────────────────────────────
 const Placeholder = ({ title, icon }: { title: string; icon: React.ReactNode }) => (

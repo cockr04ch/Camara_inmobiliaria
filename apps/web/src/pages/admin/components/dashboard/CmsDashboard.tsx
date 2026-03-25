@@ -1,9 +1,9 @@
 import React from 'react'
-import StatCard from './StatCard'
-import QuickActionButton from './QuickActionButton'
-import CashFlowChart from './CashFlowChart'
-import RecentTransactionsTable from './RecentTransactionsTable'
-import NetProfitCard from './NetProfitCard'
+import StatCard from '@/pages/admin/components/dashboard/StatCard'
+import QuickActionButton from '@/pages/admin/components/dashboard/QuickActionButton'
+import CashFlowChart from '@/pages/admin/components/dashboard/CashFlowChart'
+import RecentTransactionsTable from '@/pages/admin/components/dashboard/RecentTransactionsTable'
+import NetProfitCard from '@/pages/admin/components/dashboard/NetProfitCard'
 
 const Icon = {
   balance: (

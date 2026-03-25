@@ -1,6 +1,6 @@
-import bgBolivar from '../assets/Pzo.jpg'
+import bgBolivar from '@/pages/landing/assets/Pzo.jpg'
 
-export default function Header({ darkMode, cfg = {} }) {
+export default function Header({ darkMode, cfg = {} }: { darkMode?: boolean, cfg?: Record<string, string> }) {
   return (
     <header
       id='inicio'

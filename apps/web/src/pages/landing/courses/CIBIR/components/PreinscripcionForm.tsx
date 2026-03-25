@@ -32,7 +32,7 @@ const PreinscripcionForm = () => {
     setErrorMsg('');
 
     try {
-      const apiUrl = (import.meta as any).env.VITE_API_URL || 'http://localhost:3000';
+      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
       const response = await fetch(`${apiUrl}/api/afiliados/registro`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -51,9 +51,10 @@ const PreinscripcionForm = () => {
       }
 
       setSubmitted(true);
-    } catch (error: any) {
-      console.error('Error al registrar:', error);
-      setErrorMsg(error.message || 'Ocurrió un error inesperado al procesar la solicitud.');
+    } catch (error: unknown) {
+      const e = error as Error;
+      console.error('Error al registrar:', e);
+      setErrorMsg(e.message || 'Ocurrió un error inesperado al procesar la solicitud.');
     } finally {
       setLoading(false);
     }

@@ -1,6 +1,6 @@
 import React from 'react';
 import { GraduationCap, ArrowRight, ChevronRight } from 'lucide-react';
-import DashboardCard from './DashboardCard';
+import DashboardCard from '@/pages/afiliado/components/DashboardCard';
 
 interface Course {
   title: string;

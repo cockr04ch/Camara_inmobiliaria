@@ -1,20 +1,29 @@
 import React, { useState, useEffect, useCallback } from 'react'
-import { api, FormField, Input, BtnPrimary, BtnDanger, BtnSecondary, ListDetail } from './CmsShared'
+import { api, FormField, Input, BtnPrimary, BtnDanger, BtnSecondary, ListDetail } from '@/pages/admin/components/Cms/CmsShared'
+
+interface DirectivaItem {
+  id: string | number;
+  nombre: string;
+  cargo: string;
+  foto_url?: string;
+  orden: number;
+  activo: number | boolean;
+}
 
 export const DirectivaPanel = () => {
-  const [items, setItems] = useState<any[]>([])
+  const [items, setItems] = useState<DirectivaItem[]>([])
   const [loading, setLoading] = useState(true)
-  const [selectedId, setSelectedId] = useState<any>(null)
+  const [selectedId, setSelectedId] = useState<string | number | null>(null)
   const [form, setForm] = useState({ nombre: '', cargo: '', foto_url: '', orden: 0, activo: true })
   const [saving, setSaving] = useState(false)
 
   const load = useCallback(async () => { setLoading(true); const data = await api.get('/api/cms/directiva'); if (data.success) setItems(data.data); setLoading(false) }, [])
   useEffect(() => { load() }, [load])
-  const openEdit = (item: any) => { setSelectedId(item.id); setForm({ nombre: item.nombre, cargo: item.cargo, foto_url: item.foto_url || '', orden: item.orden, activo: item.activo === 1 }) }
+  const openEdit = (item: DirectivaItem) => { setSelectedId(item.id); setForm({ nombre: item.nombre, cargo: item.cargo, foto_url: item.foto_url || '', orden: item.orden, activo: item.activo === 1 }) }
   const openNew = () => { setSelectedId('new'); setForm({ nombre: '', cargo: '', foto_url: '', orden: 0, activo: true }) }
   const save = async () => { setSaving(true); if (selectedId === 'new') await api.post('/api/cms/directiva', form); else await api.put(`/api/cms/directiva/${selectedId}`, form); setSaving(false); setSelectedId(null); load() }
-  const remove = async (id: any) => { if (!confirm('¿Eliminar?')) return; await api.delete(`/api/cms/directiva/${id}`); setSelectedId(null); load() }
-  const f = (k: string) => (e: any) => setForm(p => ({ ...p, [k]: e.target.type === 'checkbox' ? e.target.checked : e.target.type === 'number' ? Number(e.target.value) : e.target.value }))
+  const remove = async (id: string | number) => { if (!confirm('¿Eliminar?')) return; await api.delete(`/api/cms/directiva/${id}`); setSelectedId(null); load() }
+  const f = (k: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement>) => setForm(p => ({ ...p, [k]: e.target.type === 'checkbox' ? e.target.checked : e.target.type === 'number' ? Number(e.target.value) : e.target.value }))
 
   const formBody = () => (
     <div className="flex flex-col gap-4 bg-white rounded-2xl p-5 border border-gray-100">

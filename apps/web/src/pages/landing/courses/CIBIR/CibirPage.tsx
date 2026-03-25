@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import { Shield, GraduationCap, BarChart3, Handshake } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import Navbar from '../../components/Navbar';
-import LoginModal from '../../components/LoginModal';
-import RegisterModal from '../../components/RegisterModal';
-import CibirHero from './components/CibirHero';
-import BeneficioCard from './components/BeneficioCard';
-import PreinscripcionForm from './components/PreinscripcionForm';
+import Navbar from '@/pages/landing/components/Navbar';
+import LoginModal from '@/pages/landing/components/LoginModal';
+import RegisterModal from '@/pages/landing/components/RegisterModal';
+import CibirHero from '@/pages/landing/courses/CIBIR/components/CibirHero';
+import BeneficioCard from '@/pages/landing/courses/CIBIR/components/BeneficioCard';
+import PreinscripcionForm from '@/pages/landing/courses/CIBIR/components/PreinscripcionForm';
 
 
 // ─── Data ─────────────────────────────────────────────────────────────────────

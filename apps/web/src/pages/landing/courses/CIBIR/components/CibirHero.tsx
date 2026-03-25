@@ -1,8 +1,7 @@
 import React from 'react';
 import { ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
-// @ts-expect-error - Vite handles image imports but TS lacks the type declaration
-import bgBolivar from '../../../assets/Camara_Metropolitana.jpg';
+import bgBolivar from '@/pages/landing/assets/Camara_Metropolitana.jpg';
 
 const CibirHero = () => (
   <section className="relative min-h-[60vh] flex items-center justify-center text-white overflow-hidden bg-[#022c22]">

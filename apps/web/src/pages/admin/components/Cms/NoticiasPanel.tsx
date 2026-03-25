@@ -1,10 +1,21 @@
 import React, { useState, useEffect, useCallback } from 'react'
-import { api, FormField, Input, Textarea, BtnPrimary, BtnDanger, BtnSecondary, ListDetail } from './CmsShared'
+import { api, FormField, Input, Textarea, BtnPrimary, BtnDanger, BtnSecondary, ListDetail } from '@/pages/admin/components/Cms/CmsShared'
+
+interface NoticiaItem {
+  id: string | number;
+  titulo: string;
+  extracto: string;
+  imagen_url: string;
+  categoria: string;
+  tag: string;
+  fecha: string;
+  publicado: number | boolean;
+}
 
 export const NoticiasPanel = () => {
-  const [items, setItems] = useState<any[]>([])
+  const [items, setItems] = useState<NoticiaItem[]>([])
   const [loading, setLoading] = useState(true)
-  const [selectedId, setSelectedId] = useState<any>(null)
+  const [selectedId, setSelectedId] = useState<string | number | null>(null)
   const [form, setForm] = useState({ titulo: '', extracto: '', imagen_url: '', categoria: 'Noticias', tag: '', fecha: '', publicado: true })
   const [saving, setSaving] = useState(false)
 
@@ -17,9 +28,9 @@ export const NoticiasPanel = () => {
 
   useEffect(() => { load() }, [load])
 
-  const openEdit = (item: any) => {
+  const openEdit = (item: NoticiaItem) => {
     setSelectedId(item.id)
-    setForm({ titulo: item.titulo, extracto: item.extracto, imagen_url: item.imagen_url || '', categoria: item.categoria, tag: item.tag || '', fecha: item.fecha?.split('T')[0] || '', publicado: item.publicado === 1 })
+    setForm({ titulo: item.titulo, extracto: item.extracto, imagen_url: item.imagen_url || '', categoria: item.categoria, tag: item.tag || '', fecha: item.fecha?.split('T')[0] || '', publicado: item.publicado === 1 || item.publicado === true })
   }
 
   const openNew = () => {
@@ -36,14 +47,14 @@ export const NoticiasPanel = () => {
     load()
   }
 
-  const remove = async (id: any) => {
+  const remove = async (id: string | number) => {
     if (!confirm('¿Eliminar esta noticia?')) return
     await api.delete(`/api/cms/noticias/${id}`)
     setSelectedId(null)
     load()
   }
 
-  const f = (k: string) => (e: any) => setForm(p => ({ ...p, [k]: e.target.type === 'checkbox' ? e.target.checked : e.target.value }))
+  const f = (k: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => setForm(p => ({ ...p, [k]: e.target.type === 'checkbox' ? (e.target as HTMLInputElement).checked : e.target.value }))
 
   const formBody = () => (
     <div className="flex flex-col gap-4 bg-white rounded-2xl p-5 border border-gray-100">

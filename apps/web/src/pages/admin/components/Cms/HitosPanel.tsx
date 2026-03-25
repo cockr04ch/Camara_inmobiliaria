@@ -1,20 +1,28 @@
 import React, { useState, useEffect, useCallback } from 'react'
-import { api, FormField, Input, Textarea, BtnPrimary, BtnDanger, BtnSecondary, ListDetail } from './CmsShared'
+import { api, FormField, Input, Textarea, BtnPrimary, BtnDanger, BtnSecondary, ListDetail } from '@/pages/admin/components/Cms/CmsShared'
+
+interface HitoItem {
+  id: string | number;
+  anio: string;
+  titulo: string;
+  descripcion: string;
+  orden: number;
+}
 
 export const HitosPanel = () => {
-  const [items, setItems] = useState<any[]>([])
+  const [items, setItems] = useState<HitoItem[]>([])
   const [loading, setLoading] = useState(true)
-  const [selectedId, setSelectedId] = useState<any>(null)
+  const [selectedId, setSelectedId] = useState<string | number | null>(null)
   const [form, setForm] = useState({ anio: '', titulo: '', descripcion: '', orden: 0 })
   const [saving, setSaving] = useState(false)
 
   const load = useCallback(async () => { setLoading(true); const data = await api.get('/api/cms/hitos'); if (data.success) setItems(data.data); setLoading(false) }, [])
   useEffect(() => { load() }, [load])
-  const openEdit = (item: any) => { setSelectedId(item.id); setForm({ anio: item.anio, titulo: item.titulo, descripcion: item.descripcion, orden: item.orden }) }
+  const openEdit = (item: HitoItem) => { setSelectedId(item.id); setForm({ anio: item.anio, titulo: item.titulo, descripcion: item.descripcion, orden: item.orden }) }
   const openNew = () => { setSelectedId('new'); setForm({ anio: '', titulo: '', descripcion: '', orden: items.length }) }
   const save = async () => { setSaving(true); if (selectedId === 'new') await api.post('/api/cms/hitos', form); else await api.put(`/api/cms/hitos/${selectedId}`, form); setSaving(false); setSelectedId(null); load() }
-  const remove = async (id: any) => { if (!confirm('¿Eliminar?')) return; await api.delete(`/api/cms/hitos/${id}`); setSelectedId(null); load() }
-  const f = (k: string) => (e: any) => setForm(p => ({ ...p, [k]: e.target.type === 'number' ? Number(e.target.value) : e.target.value }))
+  const remove = async (id: string | number) => { if (!confirm('¿Eliminar?')) return; await api.delete(`/api/cms/hitos/${id}`); setSelectedId(null); load() }
+  const f = (k: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => setForm(p => ({ ...p, [k]: e.target.type === 'number' ? Number(e.target.value) : e.target.value }))
 
   const formBody = () => (
     <div className="flex flex-col gap-4 bg-white rounded-2xl p-5 border border-gray-100">

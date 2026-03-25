@@ -1,9 +1,21 @@
 import React, { useState } from 'react'
 import { Link } from 'react-router-dom'
-import logoA from '../assets/Logo2.png'
-import logo from '../assets/Logo3.png'
+import logoA from '@/pages/landing/assets/Logo2.png'
+import logo from '@/pages/landing/assets/Logo3.png'
 
-const NavItem = ({ title, options, Tpath }) => {
+export interface NavOption {
+  label: string;
+  path: string;
+}
+export type NavOptionItem = string | NavOption;
+
+interface NavItemProps {
+  title: string;
+  options: NavOptionItem[] | null;
+  Tpath: string;
+}
+
+const NavItem = ({ title, options, Tpath }: NavItemProps) => {
   const [isOpen, setIsOpen] = useState(false)
 
   return (
@@ -48,7 +60,14 @@ const NavItem = ({ title, options, Tpath }) => {
   )
 }
 
-export default function Navbar({ darkMode, setDarkMode, setIsSesionModalOpen, setIsRegisterModalOpen }) {
+interface NavbarProps {
+  darkMode: boolean;
+  setDarkMode: (val: boolean) => void;
+  setIsSesionModalOpen: (val: boolean) => void;
+  setIsRegisterModalOpen: (val: boolean) => void;
+}
+
+export default function Navbar({ darkMode, setDarkMode, setIsSesionModalOpen, setIsRegisterModalOpen }: NavbarProps) {
   const menuConfig = [
     {
       title: 'Nosotros',

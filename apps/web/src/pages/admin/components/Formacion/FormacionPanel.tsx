@@ -162,7 +162,7 @@ const CibirPanel = ({ onCountsUpdate }: { onCountsUpdate?: (pendientes: number) 
     setLoading(true)
     try {
       const tabParam = filter.toLowerCase();
-      const apiUrl = (import.meta as any).env?.VITE_API_URL || 'http://localhost:3000';
+      const apiUrl = import.meta.env?.VITE_API_URL || 'http://localhost:3000';
       const res = await fetch(`${apiUrl}/api/afiliados/cibir/solicitudes?tab=${tabParam}`)
       const json = await res.json()
 
@@ -176,7 +176,7 @@ const CibirPanel = ({ onCountsUpdate }: { onCountsUpdate?: (pendientes: number) 
         setCounts(nuevosCuentas)
         if (onCountsUpdate) onCountsUpdate(nuevosCuentas.Pendiente)
 
-        const mapped: Solicitud[] = json.data.map((item: any) => {
+        const mapped: Solicitud[] = json.data.map((item: { id_agremiado: string | number; nombre_completo: string; cedula_rif: string; email: string; telefono: string; estatus: string; fecha_registro: string }) => {
           let status: CibirStatus = 'Pendiente'
           if (item.estatus === 'CIBIR') status = 'Aprobado'
           if (item.estatus === 'Rechazado') status = 'Rechazado'
@@ -208,7 +208,7 @@ const CibirPanel = ({ onCountsUpdate }: { onCountsUpdate?: (pendientes: number) 
 
   const updateStatus = async (id: string, status: CibirStatus) => {
     try {
-      const apiUrl = (import.meta as any).env?.VITE_API_URL || 'http://localhost:3000';
+      const apiUrl = import.meta.env?.VITE_API_URL || 'http://localhost:3000';
       if (status === 'Aprobado') {
         await fetch(`${apiUrl}/api/afiliados/${id}/aprobar`, { method: 'PATCH' })
       } else if (status === 'Rechazado') {
@@ -410,7 +410,7 @@ const FormacionPanel = () => {
   useEffect(() => {
     const fetchGlobalCounts = async () => {
       try {
-        const apiUrl = (import.meta as any).env?.VITE_API_URL || 'http://localhost:3000';
+        const apiUrl = import.meta.env?.VITE_API_URL || 'http://localhost:3000';
         const res = await fetch(`${apiUrl}/api/afiliados/cibir/solicitudes?tab=todos`)
         const json = await res.json()
         if (json.success) setPendientesCount(json.meta.counts.pendiente || 0)

@@ -1,20 +1,26 @@
 import React, { useState, useEffect, useRef } from 'react'
-import logoA from './assets/Logo2.png'
-import logo from './assets/Logo3.png'
-import heroImg from './assets/empresaria.png'
-import featureImg from './assets/empresaria_3.png'
-import LoginModal from './components/LoginModal'
-import RegisterModal from './components/RegisterModal'
+import logoA from '@/pages/landing/assets/Logo2.png'
+import logo from '@/pages/landing/assets/Logo3.png'
+import heroImg from '@/pages/landing/assets/empresaria.png'
+import featureImg from '@/pages/landing/assets/empresaria_3.png'
+import LoginModal from '@/pages/landing/components/LoginModal'
+import RegisterModal from '@/pages/landing/components/RegisterModal'
 import { Link, useNavigate } from 'react-router-dom'
 
-import Mision_img from './assets/Mision.jpeg'
-import Navbar from './components/Navbar'
-import Header from './components/Header'
+import Mision_img from '@/pages/landing/assets/Mision.jpeg'
+import Navbar from '@/pages/landing/components/Navbar'
+import Header from '@/pages/landing/components/Header'
 
-const Counter = ({ end, duration = 2000, suffix = '' }) => {
+interface CounterProps {
+  end: number;
+  duration?: number;
+  suffix?: string;
+}
+
+const Counter = ({ end, duration = 2000, suffix = '' }: CounterProps) => {
   const [count, setCount] = useState(0)
   const [hasStarted, setHasStarted] = useState(false)
-  const elementRef = useRef(null)
+  const elementRef = useRef<HTMLSpanElement>(null)
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -60,9 +66,27 @@ const FALLBACK_CURSOS = [
   { id: 'PADI', codigo: 'PADI', titulo: 'Programa de Administración', subtitulo: 'Administración en inmuebles', imagen_url: 'https://cms.usanmarcos.ac.cr/sites/default/files/tips-para-el-primer-dia-de-clases.png' }
 ]
 
-const FormacionSection = ({ revealTitle, revealPanels, cfg = {} }) => {
+interface SectionProps {
+  revealTitle?: (node: HTMLElement | null) => void;
+  revealPanels?: (node: HTMLElement | null) => void;
+  revealTextConvenios?: (node: HTMLElement | null) => void;
+  scrollRef?: React.RefObject<HTMLDivElement | null> | React.RefObject<HTMLDivElement>;
+  cfg?: Record<string, string>;
+}
+
+interface CursoLanding {
+  id: string;
+  codigo: string;
+  titulo: string;
+  subtitulo?: string;
+  sub?: string;
+  imagen_url?: string;
+  img?: string;
+}
+
+const FormacionSection = ({ revealTitle, revealPanels, cfg = {} }: SectionProps) => {
   const [currentIndex, setCurrentIndex] = useState(0)
-  const [cursos, setCursos] = useState(FALLBACK_CURSOS)
+  const [cursos, setCursos] = useState<CursoLanding[]>(FALLBACK_CURSOS)
 
   useEffect(() => {
     const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000'
@@ -70,7 +94,7 @@ const FormacionSection = ({ revealTitle, revealPanels, cfg = {} }) => {
       .then(r => r.json())
       .then(data => {
         if (data.success && data.data.length > 0) {
-          setCursos(data.data.map(c => ({ ...c, id: c.codigo })))
+          setCursos(data.data.map((c: CursoLanding) => ({ ...c, id: c.codigo })))
         }
       })
       .catch(() => {}) // mantener fallback
@@ -175,8 +199,16 @@ const FALLBACK_LOGOS = [
   { id: 4, nombre: 'Aliado 4', logo_url: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQYIgmOl4EASpo1hjggjQq_xP61myeh_nkr9w&s' }
 ]
 
-const ConveniosSection = ({ revealTextConvenios, cfg = {} }) => {
-  const [logos, setLogos] = useState(FALLBACK_LOGOS)
+interface LogoLanding {
+  id: number;
+  nombre?: string;
+  name?: string;
+  logo_url?: string;
+  url?: string;
+}
+
+const ConveniosSection = ({ revealTextConvenios, cfg = {} }: SectionProps) => {
+  const [logos, setLogos] = useState<LogoLanding[]>(FALLBACK_LOGOS)
 
   useEffect(() => {
     const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000'
@@ -250,8 +282,19 @@ const FALLBACK_NOTICIAS = [
   { id: 4, titulo: 'Innovación Inmobiliaria', extracto: 'Nuevas tecnologías aplicadas al sector de bienes raíces en la región.', imagen_url: 'https://www.elnuevoherald.com/public/ultimas-noticias/5hl2um/picture314557289/alternates/LANDSCAPE_1140/CONDO11.jpg', tag: 'Tecnología' }
 ]
 
-const NoticiasSection = ({ scrollRef, cfg = {} }) => {
-  const [noticiasBase, setNoticiasBase] = useState(FALLBACK_NOTICIAS)
+interface NoticiaLanding {
+  id: number;
+  titulo?: string;
+  t?: string;
+  extracto?: string;
+  d?: string;
+  imagen_url?: string;
+  img?: string;
+  tag?: string;
+}
+
+const NoticiasSection = ({ scrollRef, cfg = {} }: SectionProps) => {
+  const [noticiasBase, setNoticiasBase] = useState<NoticiaLanding[]>(FALLBACK_NOTICIAS)
 
   useEffect(() => {
     const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000'
@@ -263,8 +306,8 @@ const NoticiasSection = ({ scrollRef, cfg = {} }) => {
 
   const noticias = [...noticiasBase, ...noticiasBase]
 
-  const scroll = (direction) => {
-    const { current } = scrollRef
+  const scroll = (direction: 'left' | 'right') => {
+    const current = scrollRef?.current
     if (!current) return
 
     const cardWidth = current.offsetWidth / 3
@@ -377,7 +420,7 @@ export default function LandingPage() {
   const [isModalRegisterOpen, setIsRegisterModalOpen] = useState(false)
   const [darkMode, setDarkMode] = useState(true)
   const [scrollY, setScrollY] = useState(0)
-  const [cfg, setCfg] = useState({})
+  const [cfg, setCfg] = useState<Record<string, string>>({})
   const navigate = useNavigate()
 
   // Cargar configuración CMS global
@@ -395,8 +438,8 @@ export default function LandingPage() {
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
-  const useScrollReveal = () => {
-    const [ref, setRef] = useState(null)
+  const useScrollReveal = (): (node: HTMLElement | null) => void => {
+    const [ref, setRef] = useState<HTMLElement | null>(null)
 
     useEffect(() => {
       if (!ref) return
@@ -426,7 +469,7 @@ export default function LandingPage() {
   const revealTitle = useScrollReveal()
   const revealPanels = useScrollReveal()
   const revealTextConvenios = useScrollReveal()
-  const scrollRef = useRef(null)
+  const scrollRef = useRef<HTMLDivElement>(null)
 
   return (
     <div className='min-h-screen bg-[#022c22] text-white font-sans selection:bg-emerald-500/30 scroll-smooth'>

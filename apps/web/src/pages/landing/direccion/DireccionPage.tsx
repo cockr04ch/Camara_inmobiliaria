@@ -1,5 +1,5 @@
 import React from 'react'
-import Navbar2 from '../components/Navbar_sc'
+import Navbar2 from '@/pages/landing/components/Navbar_sc'
 
 export default function Direccion() {
   return (

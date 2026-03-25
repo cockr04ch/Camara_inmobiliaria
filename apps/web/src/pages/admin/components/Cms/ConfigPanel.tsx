@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react'
-import { api, Input, Textarea, BtnPrimary, Loading } from './CmsShared'
+import { api, Input, Textarea, BtnPrimary, Loading } from '@/pages/admin/components/Cms/CmsShared'
 
 const CONFIG_GROUPS = [
   {

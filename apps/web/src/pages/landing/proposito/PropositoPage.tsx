@@ -1,19 +1,19 @@
 import React, { useState, useEffect } from 'react'
-import bgBolivar from '../assets/Pzo.jpg'
-import Navbar2 from '../components/Navbar_sc'
+import bgBolivar from '@/pages/landing/assets/Pzo.jpg'
+import Navbar2 from '@/pages/landing/components/Navbar_sc'
 
 const useScrollReveal = () => {
-  const [ref, setRef] = useState(null)
+  const [node, setNode] = useState<HTMLElement | null>(null)
   useEffect(() => {
-    if (!ref) return
+    if (!node) return
     const observer = new IntersectionObserver(
       ([entry]) => { if (entry.isIntersecting) entry.target.classList.add('active') },
       { threshold: 0.1 }
     )
-    observer.observe(ref)
+    observer.observe(node)
     return () => observer.disconnect()
-  }, [ref])
-  return setRef
+  }, [node])
+  return (element: HTMLElement | null) => setNode(element)
 }
 
 export default function Proposito() {
