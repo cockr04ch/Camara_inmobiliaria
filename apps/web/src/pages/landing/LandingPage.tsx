@@ -421,18 +421,46 @@ export default function LandingPage() {
   const [cfg, setCfg] = useState<Record<string, string>>({})
   const navigate = useNavigate()
 
-  // Cargar configuración CMS global
   useEffect(() => {
+    // Cargar inicial
     fetch(`${API_URL}/api/cms/config`)
       .then(r => r.json())
       .then(data => { if (data.success) setCfg(data.config || {}) })
       .catch(() => {})
+
+    const handleMessage = (event: MessageEvent) => {
+      if (event.data?.type === 'preview_cfg') {
+        setCfg(event.data.cfg || {})
+      }
+      if (event.data?.type === 'scroll_to' && event.data.anchor) {
+        const el = document.querySelector(event.data.anchor)
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      }
+    }
+    window.addEventListener('message', handleMessage)
+    return () => window.removeEventListener('message', handleMessage)
   }, [])
 
   useEffect(() => {
     const handleScroll = () => setScrollY(window.scrollY)
     window.addEventListener('scroll', handleScroll)
     return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
+
+  // ── When running inside the CMS preview iframe, reveal all animated
+  //    elements immediately (IntersectionObserver won't fire on small viewports)
+  useEffect(() => {
+    const isInIframe = window.self !== window.top
+    if (!isInIframe) return
+    const reveal = () => {
+      document.querySelectorAll('.reveal-on-scroll').forEach(el => {
+        el.classList.add('active')
+      })
+    }
+    // Run once now and again after a short delay to catch late-rendered elements
+    reveal()
+    const t = setTimeout(reveal, 800)
+    return () => clearTimeout(t)
   }, [])
 
   const useScrollReveal = (): (node: HTMLElement | null) => void => {

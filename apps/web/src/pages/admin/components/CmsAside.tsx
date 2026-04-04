@@ -145,12 +145,14 @@ const NAV_BOTTOM: NavItem[] = [
 ]
 
 interface CmsAsideProps {
-  /** Mobile: whether the drawer is open */
   mobileOpen?: boolean
-  /** Called when user closes mobile drawer */
   onMobileClose?: () => void
   activeId?: string
   onNavigate?: (id: string) => void
+  width?: number
+  isCollapsed?: boolean
+  /** When true, apply CSS width transition (toggle). False during drag to avoid lag. */
+  animating?: boolean
 }
 
 const NavButton = ({
@@ -308,11 +310,12 @@ const CmsAside = ({
   onMobileClose,
   activeId: controlledActiveId,
   onNavigate,
+  width = 220,
+  isCollapsed = false,
+  animating = true,
 }: CmsAsideProps) => {
-  const [internalCollapsed, setInternalCollapsed] = useState(false)
   const [internalActiveId, setInternalActiveId] = useState('dashboard')
 
-  const isCollapsed = internalCollapsed
   const activeId = controlledActiveId !== undefined ? controlledActiveId : internalActiveId
 
   const handleNav = (id: string) => {
@@ -352,37 +355,21 @@ const CmsAside = ({
 
       {/* ── DESKTOP SIDEBAR ───────────────────────────────────────────── */}
       <aside
-        className={[
-          'relative hidden md:flex flex-col justify-between h-full bg-white border-r border-gray-100 transition-all duration-300 ease-in-out',
-          isCollapsed ? 'w-[72px]' : 'w-[220px]',
-        ].join(' ')}
+        className="relative hidden md:flex flex-col justify-between h-full bg-white border-gray-100 overflow-hidden flex-shrink-0"
+        style={{
+          width,
+          transition: animating ? 'width 0.28s cubic-bezier(0.4,0,0.2,1)' : 'none',
+        }}
       >
         <SidebarContent
           isCollapsed={isCollapsed}
           activeId={activeId}
           onNav={handleNav}
         />
-
-        {/* Desktop collapse toggle */}
-        <button
-          onClick={() => setInternalCollapsed(!isCollapsed)}
-          className="absolute -right-3 top-[72px] z-10 flex items-center justify-center w-6 h-6 rounded-full bg-white border border-gray-200 text-slate-500 shadow-sm transition-all duration-150"
-          onMouseEnter={(e) => {
-            e.currentTarget.style.backgroundColor = 'var(--color-admin-accent)'
-            e.currentTarget.style.color = 'white'
-            e.currentTarget.style.borderColor = 'var(--color-admin-accent)'
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.backgroundColor = 'white'
-            e.currentTarget.style.color = ''
-            e.currentTarget.style.borderColor = '#e5e7eb'
-          }}
-        >
-          {isCollapsed ? icons.chevronRight : icons.chevronLeft}
-        </button>
       </aside>
     </>
   )
 }
 
 export default CmsAside
+
