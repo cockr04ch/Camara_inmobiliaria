@@ -7,7 +7,18 @@ import { afiliadosRoutes, publicRoutes, cmsRoutes, authRoutes, usersRoutes } fro
 const app = express()
 
 // Middleware
-app.use(cors({ origin: env.NODE_ENV === 'production' ? env.CORS_ORIGIN : '*' }))
+app.use(cors({
+  origin: (origin, callback) => {
+    // Permite requests sin Origin (curl, server-to-server, Postman)
+    if (!origin) return callback(null, true)
+    // En dev permitimos todo para no bloquear el DX
+    if (env.NODE_ENV !== 'production') return callback(null, true)
+
+    const allowed = env.CORS_ORIGINS.includes(origin)
+    return callback(allowed ? null : new Error('Not allowed by CORS'), allowed)
+  },
+  credentials: true,
+}))
 app.use(express.json())
 
 // Rutas de API

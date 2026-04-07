@@ -57,8 +57,11 @@ TURSO_AUTH_TOKEN=your_token_here
 JWT_SECRET=tu_secreto_seguro_minimo_16_chars
 JWT_EXPIRES_IN=7d
 
-# CORS
-CORS_ORIGIN=http://localhost:5173
+# Frontend (para links en correos)
+APP_URL=http://localhost:5173
+
+# CORS (uno o varios, separados por coma)
+CORS_ORIGINS=http://localhost:5173,https://cim-front.vercel.app
 ```
 
 ### 2. Instalar y ejecutar

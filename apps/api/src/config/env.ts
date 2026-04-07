@@ -18,8 +18,33 @@ const envSchema = z.object({
   TURSO_AUTH_TOKEN: z.string().min(1),
   JWT_SECRET: z.string().min(16),
   JWT_EXPIRES_IN: z.string().default('7d'),
-  CORS_ORIGIN: z.string().url().default('http://localhost:5173'),
+  /**
+   * APP_URL: URL pública del frontend (para links en correos).
+   * En Vercel suele ser tu dominio `https://<app>.vercel.app`.
+   */
+  APP_URL: z.string().url().default('http://localhost:5173'),
+
+  /**
+   * CORS_ORIGINS / CORS_ORIGIN:
+   * - `CORS_ORIGINS` puede ser una lista separada por comas.
+   * - `CORS_ORIGIN` se mantiene por compatibilidad (un solo origin).
+   *
+   * Ej: "http://localhost:5173,https://mi-frontend.vercel.app"
+   */
+  CORS_ORIGINS: z.string().optional(),
+  CORS_ORIGIN: z.string().optional(),
   RESEND_API_KEY: z.string().min(1)
 })
 
-export const env = envSchema.parse(process.env)
+const parsed = envSchema.parse(process.env)
+
+const corsRaw = parsed.CORS_ORIGINS ?? parsed.CORS_ORIGIN ?? parsed.APP_URL
+const corsList = corsRaw
+  .split(',')
+  .map(s => s.trim())
+  .filter(Boolean)
+
+export const env = {
+  ...parsed,
+  CORS_ORIGINS: corsList,
+}

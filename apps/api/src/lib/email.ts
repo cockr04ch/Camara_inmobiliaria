@@ -9,7 +9,7 @@ const resend = new Resend(env.RESEND_API_KEY);
  */
 export const enviarCorreoVerificacion = async (nombre: string, emailOriginal: string, token: string) => {
   try {
-    const enlaceVerificacion = `${env.CORS_ORIGIN}/cibir/verificar?token=${token}`;
+    const enlaceVerificacion = `${env.APP_URL}/cibir/verificar?token=${token}`;
     
     // Al no tener dominio verificado, Resend solo permite enviar correos a la dirección del creador (jenfermz44@gmail.com).
     // Para entornos en producción con dominio verificado, 'to' debería ser 'emailOriginal'.
@@ -53,7 +53,7 @@ export const enviarCorreoVerificacion = async (nombre: string, emailOriginal: st
  */
 export const enviarCorreoAprobacion = async (nombre: string, emailOriginal: string, token: string) => {
   try {
-    const enlaceSetup = `${env.CORS_ORIGIN}/establecer-contrasena?token=${token}`;
+    const enlaceSetup = `${env.APP_URL}/establecer-contrasena?token=${token}`;
     const emailDestino = 'jenfermz44@gmail.com'; // Temporal por restricciones de Resend
 
     const { data, error } = await resend.emails.send({
