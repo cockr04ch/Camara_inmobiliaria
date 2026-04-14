@@ -7,6 +7,7 @@
  */
 
 import { db } from '../lib/db.js';
+import { seedCmsPaginas } from './seed-cms-paginas.js';
 
 async function seed() {
   console.log('Iniciando seed del CMS...\n');
@@ -159,6 +160,36 @@ async function seed() {
     { clave: 'contacto_email',           valor: 'contacto@ciebo.org.ve',                                          descripcion: 'Email de contacto público' },
     { clave: 'contacto_telefono',        valor: '+58 (285) 000-0000',                                             descripcion: 'Teléfono de contacto' },
     { clave: 'rif',                      valor: 'J-30462520-0',                                                   descripcion: 'RIF de la cámara' },
+    // ── Navegación (JSON) ───────────────────────────────────────────────────
+    {
+      clave: 'nav_menu',
+      valor: JSON.stringify([
+        { title: 'Nosotros', Tpath: '', items: [{ label: 'Misión y Visión', path: '/mision_vision' }, { label: 'Junta Directiva', path: '/junta_directiva' }, { label: 'Historia', path: '/historia' }, { label: 'Dirección', path: '/direccion' }] },
+        { title: 'CIV', items: null, Tpath: '/codigo_etica' },
+        { title: 'Eventos', items: null, Tpath: '/eventos' },
+        { title: 'Afiliados', items: [{ label: 'Directorio', path: '/directorio' }, { label: 'Beneficios', path: '/beneficios' }, { label: 'Requisitos', path: '/requisitos' }], Tpath: '' },
+        { title: 'Formación', items: [{ label: 'PREANI', path: '/preani' }, { label: 'CIBIR', path: '/cibir' }, { label: 'PEGI', path: '/pegi' }, { label: 'PADI', path: '/padi' }], Tpath: '' },
+        { title: 'Convenios', items: [{ label: 'Institucionales', path: '/convenios-institucionales' }, { label: 'Comerciales', path: '/convenios-comerciales' }, { label: 'Internacionales', path: '/convenios-internacionales' }], Tpath: '' },
+        { title: 'Normativas', items: null, Tpath: '/normativas' },
+        { title: 'Prensa', items: [{ label: 'Noticias', path: '#noticias' }, { label: 'Galería', path: '/galeria' }, { label: 'Comunicados', path: '/comunicados' }], Tpath: '' },
+        { title: 'Contacto', items: null, Tpath: '/contacto' },
+      ]),
+      descripcion: 'Menú principal (JSON): array de { title, Tpath, items }',
+    },
+    { clave: 'nav_label_inicio',   valor: 'Inicio',   descripcion: 'Etiqueta enlace Inicio (navbar)' },
+    { clave: 'nav_label_login',    valor: 'Login',    descripcion: 'Etiqueta botón Login' },
+    { clave: 'nav_label_registro', valor: 'Registro', descripcion: 'Etiqueta botón Registro' },
+    { clave: 'nav_label_salir',    valor: 'Salir',    descripcion: 'Etiqueta botón Salir' },
+    // ── Landing — textos adicionales ─────────────────────────────────────────
+    { clave: 'convenios_marquee_titulo', valor: 'Convenios y beneficios', descripcion: 'Título grande sección convenios (marquee)' },
+    { clave: 'historia_supertitulo',     valor: 'Nuestra Trayectoria',   descripcion: 'Supra-título bloque historia en landing' },
+    { clave: 'historia_titulo',          valor: 'Nuestra Historia',    descripcion: 'Título bloque historia en landing' },
+    { clave: 'historia_link_text',       valor: 'Ver cronología completa', descripcion: 'Texto enlace a /historia' },
+    { clave: 'afiliados_label_afiliados', valor: 'Afiliados',          descripcion: 'Etiqueta contador afiliados' },
+    { clave: 'afiliados_label_anos',      valor: 'Años de Historia',   descripcion: 'Etiqueta contador años' },
+    { clave: 'noticias_leer_mas',         valor: 'Leer más...',        descripcion: 'Texto teaser tarjeta noticias' },
+    { clave: 'noticias_card_meta',        valor: 'Bolívar • Actualidad', descripcion: 'Línea meta sobre cada noticia (landing)' },
+    { clave: 'directiva_ver_todos',       valor: 'Ver todos los miembros', descripcion: 'Botón ver junta completa' },
   ];
 
 
@@ -169,6 +200,8 @@ async function seed() {
     });
     console.log(`  ✓ Config: ${c.clave}`);
   }
+
+  await seedCmsPaginas();
 
   console.log('\nSeed completado exitosamente.\n');
 }

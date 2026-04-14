@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from 'react'
 import { API_URL } from '@/config/env'
+import { useAuth } from '@/context/AuthContext'
+import AsignarEstudiantePanel from './AsignarEstudiantePanel'
+import PreinscripcionesPrincipalesPanel from './PreinscripcionesPrincipalesPanel'
 // ─── Types ────────────────────────────────────────────────────────────────────
 type CibirStatus = 'Pendiente' | 'Aprobado' | 'Rechazado'
 type CursoNivel = 'Principiante' | 'Intermedio' | 'Avanzado'
@@ -151,6 +154,7 @@ const CibirDetail = ({
 
 // ─── CIBIR PANEL ─────────────────────────────────────────────────────────────
 const CibirPanel = ({ onCountsUpdate }: { onCountsUpdate?: (pendientes: number) => void }) => {
+  const { token } = useAuth()
   const [solicitudes, setSolicitudes] = useState<Solicitud[]>([])
   const [filter, setFilter] = useState<CibirStatus | 'Todos'>('Todos')
   const [selected, setSelected] = useState<Solicitud | null>(null)
@@ -158,11 +162,13 @@ const CibirPanel = ({ onCountsUpdate }: { onCountsUpdate?: (pendientes: number) 
   const [counts, setCounts] = useState({ Todos: 0, Pendiente: 0, Aprobado: 0, Rechazado: 0 })
   const [loading, setLoading] = useState(true)
 
+  const authHeaders: Record<string, string> = token ? { Authorization: `Bearer ${token}` } : {}
+
   const fetchSolicitudes = async () => {
     setLoading(true)
     try {
       const tabParam = filter.toLowerCase();
-      const res = await fetch(`${API_URL}/api/afiliados/cibir/solicitudes?tab=${tabParam}`)
+      const res = await fetch(`${API_URL}/api/afiliados/cibir/solicitudes?tab=${tabParam}`, { headers: authHeaders })
       const json = await res.json()
 
       if (json.success) {
@@ -208,9 +214,9 @@ const CibirPanel = ({ onCountsUpdate }: { onCountsUpdate?: (pendientes: number) 
   const updateStatus = async (id: string, status: CibirStatus) => {
     try {
       if (status === 'Aprobado') {
-        await fetch(`${API_URL}/api/afiliados/${id}/aprobar`, { method: 'PATCH' })
+        await fetch(`${API_URL}/api/afiliados/${id}/aprobar`, { method: 'PATCH', headers: authHeaders })
       } else if (status === 'Rechazado') {
-        await fetch(`${API_URL}/api/afiliados/${id}/rechazar`, { method: 'PATCH' })
+        await fetch(`${API_URL}/api/afiliados/${id}/rechazar`, { method: 'PATCH', headers: authHeaders })
       }
       // Re-descargar información de servidor 
       if (selected && String(selected.id) === String(id)) {
@@ -401,9 +407,10 @@ const CursosAdminPanel = () => {
 }
 
 // ─── MAIN FORMACION PANEL ─────────────────────────────────────────────────────
-type SubTab = 'cursos' | 'cibir'
+type SubTab = 'cursos' | 'cibir' | 'preinscripciones' | 'asignar'
 
 const FormacionPanel = () => {
+  const { token } = useAuth()
   const [activeTab, setActiveTab] = useState<SubTab>('cursos')
   const [pendientesCount, setPendientesCount] = useState(0)
 
@@ -411,7 +418,8 @@ const FormacionPanel = () => {
   useEffect(() => {
     const fetchGlobalCounts = async () => {
       try {
-        const res = await fetch(`${API_URL}/api/afiliados/cibir/solicitudes?tab=todos`)
+        const authHeaders: Record<string, string> = token ? { Authorization: `Bearer ${token}` } : {}
+        const res = await fetch(`${API_URL}/api/afiliados/cibir/solicitudes?tab=todos`, { headers: authHeaders })
         const json = await res.json()
         if (json.success) setPendientesCount(json.meta.counts.pendiente || 0)
       } catch (e) {
@@ -419,11 +427,13 @@ const FormacionPanel = () => {
       }
     }
     fetchGlobalCounts()
-  }, [])
+  }, [token])
 
   const tabs: { id: SubTab; label: string; badge?: number }[] = [
     { id: 'cursos', label: 'Cursos & Talleres' },
     { id: 'cibir', label: 'CIBIR', badge: pendientesCount },
+    { id: 'preinscripciones', label: 'Preinscripciones (PADI/PEGI/PREANI/CIBIR)' },
+    { id: 'asignar', label: 'Asignar Estudiante' },
   ]
 
   return (
@@ -461,6 +471,8 @@ const FormacionPanel = () => {
       <div className="flex-1 overflow-hidden">
         {activeTab === 'cursos' && <CursosAdminPanel />}
         {activeTab === 'cibir' && <CibirPanel onCountsUpdate={setPendientesCount} />}
+        {activeTab === 'preinscripciones' && <PreinscripcionesPrincipalesPanel />}
+        {activeTab === 'asignar' && <AsignarEstudiantePanel />}
       </div>
     </div>
   )

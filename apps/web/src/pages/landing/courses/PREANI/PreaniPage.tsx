@@ -1,14 +1,21 @@
+import PreinscripcionProgramaForm from '@/pages/landing/components/PreinscripcionProgramaForm'
+
 const PreaniPage = () => {
   return (
-    <div>
-      <h1>Preani</h1>
-      <p>Programa de Estudios Académicos Inmobiliarios Nivel Inicial</p>
-      <form>
-        <input type='text' placeholder='Nombre' className='border border-gray-300 rounded-md p-2' />
-        <input type='email' placeholder='Email' className='border border-gray-300 rounded-md p-2' />
-        <input type='password' placeholder='Password' className='border border-gray-300 rounded-md p-2' />
-        <button type='submit' className='bg-blue-500 text-white rounded-md p-2'>Registrarse</button>
-      </form>
+    <div className="min-h-screen bg-slate-50 text-slate-800">
+      <div className="max-w-4xl mx-auto px-6 py-16">
+        <div className="text-center space-y-3 mb-10">
+          <p className="text-[10px] font-black uppercase tracking-[0.3em] text-emerald-600">Programa</p>
+          <h1 className="text-4xl md:text-5xl font-black tracking-tight">PREANI</h1>
+          <p className="text-sm text-slate-500">
+            Programa de Estudios Académicos Inmobiliarios Nivel Inicial. Acceso público bajo modalidad de <span className="font-bold">Preinscripción</span>.
+          </p>
+        </div>
+
+        <div id="inscripcion" className="rounded-[2.5rem] p-8 md:p-14 border border-slate-200 bg-white shadow-sm">
+          <PreinscripcionProgramaForm programaCodigo="PREANI" ctaLabel="Preinscribirme a PREANI" />
+        </div>
+      </div>
     </div>
   )
 }

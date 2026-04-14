@@ -136,6 +136,7 @@ const CMS_CHILDREN: NavItem[] = [
   { id: 'cms_convenios', label: 'Convenios',     icon: icons.handshake },
   { id: 'cms_directiva', label: 'Directiva',     icon: icons.team },
   { id: 'cms_hitos',     label: 'Historia',      icon: icons.history },
+  { id: 'cms_paginas',   label: 'Páginas públicas', icon: icons.news },
   { id: 'cms_config',    label: 'Configuración', icon: icons.sliders },
 ]
 
@@ -144,7 +145,9 @@ const NAV_MAIN: NavGroup[] = [
   { id: 'cms',       label: 'Contenido',  icon: icons.cms,       children: CMS_CHILDREN },
   { id: 'formacion', label: 'Formación',  icon: icons.formacion },
   { id: 'media',     label: 'Medios',     icon: icons.media },
-  { id: 'users',     label: 'Afiliados',  icon: icons.users },
+  { id: 'afiliados', label: 'Afiliados',  icon: icons.users },
+  { id: 'estudiantes', label: 'Estudiantes', icon: icons.formacion },
+  { id: 'users',     label: 'Usuarios',  icon: icons.users },
   { id: 'admin_users',label: 'Administradores', icon: icons.admin_users },
   { id: 'analytics', label: 'Análisis',   icon: icons.analytics },
 ]

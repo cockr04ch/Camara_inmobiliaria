@@ -1,4 +1,5 @@
 import bgBolivar from '@/pages/landing/assets/Pzo.jpg'
+import { Link } from 'react-router-dom'
 
 export default function Header({ darkMode, cfg = {} }: { darkMode?: boolean, cfg?: Record<string, string> }) {
   return (
@@ -36,10 +37,13 @@ export default function Header({ darkMode, cfg = {} }: { darkMode?: boolean, cfg
           {cfg['hero_subtitulo'] || 'Representamos y fortalecemos a los profesionales del sector en el estado, impulsando la ética y el desarrollo sostenible.'}
         </p>
 
-        <div className='pt-4'>
-          <button className='px-10 py-3 bg-emerald-600 text-white rounded-full font-bold uppercase text-xs tracking-widest hover:bg-emerald-500 transition-all shadow-lg'>
-            {cfg['hero_boton'] || 'Unirse'}
-          </button>
+        <div className='pt-6 flex flex-wrap items-center gap-4'>
+          <Link to='/cibir#formulario' className='px-8 py-3.5 bg-emerald-500 text-[#011a14] rounded-full font-bold uppercase text-sm tracking-widest hover:bg-emerald-400 hover:-translate-y-1 transition-all shadow-[0_0_20px_rgba(16,185,129,0.3)]'>
+            Únete Ahora
+          </Link>
+          <Link to='/cibir' className='px-8 py-3.5 bg-transparent border border-white/30 text-white rounded-full font-bold uppercase text-sm tracking-widest hover:bg-white/10 transition-all'>
+            Saber más
+          </Link>
         </div>
       </div>
     </header>

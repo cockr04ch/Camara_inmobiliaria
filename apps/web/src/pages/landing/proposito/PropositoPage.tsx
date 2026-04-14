@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import bgBolivar from '@/pages/landing/assets/Pzo.jpg'
-import Navbar2 from '@/pages/landing/components/Navbar_sc'
+import Navbar from '@/pages/landing/components/navbar/Navbar'
 
 const useScrollReveal = () => {
   const [node, setNode] = useState<HTMLElement | null>(null)
@@ -17,12 +17,13 @@ const useScrollReveal = () => {
 }
 
 export default function Proposito() {
+  const [darkMode, setDarkMode] = useState(false)
   const setRevealCuerpo = useScrollReveal()
   const setRevealAgenda = useScrollReveal()
 
   return (
     <div className='min-h-screen bg-[#022c22] text-white font-sans selection:bg-emerald-500/30'>
-      <Navbar2 />
+      <Navbar darkMode={darkMode} setDarkMode={setDarkMode} />
       <header className='relative px-6 lg:px-20 py-24 flex items-center justify-center min-h-[50vh] bg-cover animate-header-bg overflow-hidden' style={{ backgroundImage: `linear-gradient(rgba(2, 44, 34, 0.85), rgba(2, 44, 34, 0.85)), url(${bgBolivar})`, backgroundSize: 'cover', backgroundPosition: 'center', backgroundAttachment: 'fixed' }}>
         <div className='relative z-10 text-center space-y-4'>
           <p className='text-emerald-500 font-black uppercase tracking-[0.3em] text-xs animate-header-text' style={{ animationDelay: '0.2s', opacity: 0 }}>Ciudad Guayana, 7 de febrero 2026</p>

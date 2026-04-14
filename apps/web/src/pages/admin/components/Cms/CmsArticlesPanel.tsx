@@ -5,9 +5,10 @@ import { ConveniosPanel } from '@/pages/admin/components/Cms/ConveniosPanel'
 import { DirectivaPanel } from '@/pages/admin/components/Cms/DirectivaPanel'
 import { HitosPanel }     from '@/pages/admin/components/Cms/HitosPanel'
 import { ConfigPanel }    from '@/pages/admin/components/Cms/ConfigPanel'
+import { PaginasPanel } from '@/pages/admin/components/Cms/PaginasPanel'
 import { LandingPreviewPane } from '@/pages/admin/components/Cms/LandingPreviewPane'
 
-export type CmsTab = 'noticias' | 'cursos' | 'convenios' | 'directiva' | 'hitos' | 'config'
+export type CmsTab = 'noticias' | 'cursos' | 'convenios' | 'directiva' | 'hitos' | 'config' | 'paginas'
 
 /** Maps each CMS tab to its relevant landing section anchor */
 const SECTION_ANCHORS: Record<CmsTab, string> = {
@@ -17,6 +18,7 @@ const SECTION_ANCHORS: Record<CmsTab, string> = {
   directiva: '#directiva',
   hitos:     '#nosotros',
   config:    '',
+  paginas:   '',
 }
 
 const MIN_LEFT   = 360   // px
@@ -80,6 +82,14 @@ export default function CmsArticlesPanel({ externalTab = 'config' }: { externalT
     return (
       <div className="flex h-full overflow-hidden">
         <ConfigPanel />
+      </div>
+    )
+  }
+
+  if (externalTab === 'paginas') {
+    return (
+      <div className="flex h-full overflow-hidden">
+        <PaginasPanel />
       </div>
     )
   }

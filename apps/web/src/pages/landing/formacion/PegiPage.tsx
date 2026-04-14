@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import Navbar from '@/pages/landing/components/Navbar';
+import Navbar from '@/pages/landing/components/navbar/Navbar';
 import { ArrowRight, Award, Briefcase, TrendingUp, Building, Globe2, CheckCircle2 } from 'lucide-react';
+import PreinscripcionProgramaForm from '@/pages/landing/components/PreinscripcionProgramaForm';
 
 export default function PegiPage() {
   const [darkMode, setDarkMode] = useState(true);
@@ -44,11 +45,11 @@ export default function PegiPage() {
 
   return (
     <div className={`min-h-screen font-sans transition-colors duration-500 ${darkMode ? 'dark bg-[#011a14] text-slate-100' : 'bg-slate-50 text-slate-800'}`}>
-      <Navbar 
-        darkMode={darkMode} 
-        setDarkMode={setDarkMode} 
-        setIsSesionModalOpen={setIsLoginOpen} 
-        setIsRegisterModalOpen={setIsRegisterOpen} 
+      <Navbar
+        darkMode={darkMode}
+        setDarkMode={setDarkMode}
+        setIsSesionModalOpen={setIsLoginOpen}
+        setIsRegisterModalOpen={setIsRegisterOpen}
       />
 
       {/* Hero Interactivo (Estilo PREANI adaptado a PEGI) */}
@@ -56,7 +57,7 @@ export default function PegiPage() {
         <div className="absolute inset-0 pointer-events-none" style={{ backgroundImage: 'radial-gradient(circle at 100% 0%, var(--tw-gradient-stops))' }}>
           <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-transparent to-amber-500/5 dark:to-amber-500/10" />
         </div>
-        
+
         <div className="max-w-6xl mx-auto flex flex-col lg:flex-row items-center gap-16 relative z-10">
           <div className="flex-1 space-y-8 text-center lg:text-left">
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-slate-100 dark:bg-[#04432f] border border-slate-200 dark:border-amber-500/30 text-xs font-black uppercase tracking-widest text-[#022c22] dark:text-amber-400">
@@ -77,79 +78,97 @@ export default function PegiPage() {
               </a>
             </div>
           </div>
-          
+
           <div className="flex-1 relative w-full max-w-lg lg:max-w-md mx-auto">
-             {/* Abstract Composition / Badge */}
-             <div className="relative aspect-square rounded-[3rem] bg-gradient-to-br from-slate-100 to-white dark:from-[#04432f] dark:to-[#011a14] border-8 border-white dark:border-[#022c22] shadow-2xl flex items-center justify-center p-12 overflow-hidden -rotate-3 hover:rotate-0 transition-transform duration-700">
-                <div className="absolute inset-0 bg-[#022c22] opacity-[0.03] dark:opacity-10" style={{ backgroundImage: 'repeating-linear-gradient(-45deg, transparent, transparent 10px, currentColor 10px, currentColor 20px)'}} />
-                <div className="text-center relative z-10">
-                   <div className="w-24 h-24 mx-auto bg-amber-500 text-white rounded-full flex items-center justify-center mb-6 shadow-xl shadow-amber-500/30">
-                      <Award size={48} />
-                   </div>
-                   <h3 className="text-4xl font-black text-slate-800 dark:text-emerald-50">PEGI</h3>
-                   <p className="text-sm font-bold text-slate-400 dark:text-amber-500/80 uppercase tracking-widest mt-2 border-t-2 border-slate-200 dark:border-amber-500/20 pt-2">Nivel Máster</p>
+            {/* Abstract Composition / Badge */}
+            <div className="relative aspect-square rounded-[3rem] bg-gradient-to-br from-slate-100 to-white dark:from-[#04432f] dark:to-[#011a14] border-8 border-white dark:border-[#022c22] shadow-2xl flex items-center justify-center p-12 overflow-hidden -rotate-3 hover:rotate-0 transition-transform duration-700">
+              <div className="absolute inset-0 bg-[#022c22] opacity-[0.03] dark:opacity-10" style={{ backgroundImage: 'repeating-linear-gradient(-45deg, transparent, transparent 10px, currentColor 10px, currentColor 20px)' }} />
+              <div className="text-center relative z-10">
+                <div className="w-24 h-24 mx-auto bg-amber-500 text-white rounded-full flex items-center justify-center mb-6 shadow-xl shadow-amber-500/30">
+                  <Award size={48} />
                 </div>
-             </div>
-             {/* Floating elements */}
-             <div className="absolute -bottom-6 -right-6 bg-white dark:bg-[#022c22] p-4 rounded-2xl shadow-xl border border-slate-100 dark:border-amber-500/20 flex gap-4 items-center animate-bounce" style={{ animationDuration: '3.5s'}}>
-                <div className="w-12 h-12 rounded-full bg-emerald-50 dark:bg-emerald-900/30 flex items-center justify-center text-emerald-600 dark:text-amber-400 font-black">120+</div>
-                <div>
-                   <p className="text-xs font-bold text-slate-400 dark:text-emerald-50/50 uppercase">Egresados</p>
-                   <p className="text-sm font-black text-slate-800 dark:text-white">CEO & Brokers</p>
-                </div>
-             </div>
+                <h3 className="text-4xl font-black text-slate-800 dark:text-emerald-50">PEGI</h3>
+                <p className="text-sm font-bold text-slate-400 dark:text-amber-500/80 uppercase tracking-widest mt-2 border-t-2 border-slate-200 dark:border-amber-500/20 pt-2">Nivel Máster</p>
+              </div>
+            </div>
+            {/* Floating elements */}
+            <div className="absolute -bottom-6 -right-6 bg-white dark:bg-[#022c22] p-4 rounded-2xl shadow-xl border border-slate-100 dark:border-amber-500/20 flex gap-4 items-center animate-bounce" style={{ animationDuration: '3.5s' }}>
+              <div className="w-12 h-12 rounded-full bg-emerald-50 dark:bg-emerald-900/30 flex items-center justify-center text-emerald-600 dark:text-amber-400 font-black">120+</div>
+              <div>
+                <p className="text-xs font-bold text-slate-400 dark:text-emerald-50/50 uppercase">Egresados</p>
+                <p className="text-sm font-black text-slate-800 dark:text-white">CEO & Brokers</p>
+              </div>
+            </div>
           </div>
         </div>
       </section>
 
       {/* Módulos Bento-Box */}
       <section id="pensum" className="py-24 px-6 lg:px-20 max-w-7xl mx-auto">
-         <div className="text-center mb-16 space-y-4">
-            <h2 className="text-3xl md:text-5xl font-black tracking-tight text-slate-900 dark:text-white">
-               El arte de estructurar <br/><span className="text-amber-500">imperios inmobiliarios.</span>
-            </h2>
-            <p className="text-lg font-medium text-slate-500 dark:text-emerald-50/60 max-w-2xl mx-auto">
-               Olvídese del corretaje tradicional. Este es un programa inmersivo diseñado para enseñarle a pensar como el fondo de inversión o el presidente de la franquicia.
-            </p>
-         </div>
+        <div className="text-center mb-16 space-y-4">
+          <h2 className="text-3xl md:text-5xl font-black tracking-tight text-slate-900 dark:text-white">
+            El arte de estructurar <br /><span className="text-amber-500">imperios inmobiliarios.</span>
+          </h2>
+          <p className="text-lg font-medium text-slate-500 dark:text-emerald-50/60 max-w-2xl mx-auto">
+            Olvídese del corretaje tradicional. Este es un programa inmersivo diseñado para enseñarle a pensar como el fondo de inversión o el presidente de la franquicia.
+          </p>
+        </div>
 
-         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {modules.map((mod, idx) => {
-               const IconCmp = mod.icon;
-               return (
-                  <div key={idx} className={`group p-8 rounded-[2rem] border-2 border-transparent bg-white dark:bg-[#04432f] hover:border-slate-200 dark:hover:border-amber-500/40 shadow-sm hover:shadow-xl transition-all duration-300`}>
-                     <div className={`w-16 h-16 rounded-2xl flex items-center justify-center mb-6 transition-transform group-hover:scale-110 ${mod.lightBg} ${mod.darkBg} ${mod.color.replace('bg-', 'text-')}`}>
-                        <IconCmp size={32} />
-                     </div>
-                     <h3 className="text-2xl font-black text-slate-800 dark:text-emerald-50 mb-3">{mod.title}</h3>
-                     <p className="text-slate-500 dark:text-emerald-100/70 font-medium leading-relaxed">
-                        {mod.desc}
-                     </p>
-                  </div>
-               );
-            })}
-         </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {modules.map((mod, idx) => {
+            const IconCmp = mod.icon;
+            return (
+              <div key={idx} className={`group p-8 rounded-[2rem] border-2 border-transparent bg-white dark:bg-[#04432f] hover:border-slate-200 dark:hover:border-amber-500/40 shadow-sm hover:shadow-xl transition-all duration-300`}>
+                <div className={`w-16 h-16 rounded-2xl flex items-center justify-center mb-6 transition-transform group-hover:scale-110 ${mod.lightBg} ${mod.darkBg} ${mod.color.replace('bg-', 'text-')}`}>
+                  <IconCmp size={32} />
+                </div>
+                <h3 className="text-2xl font-black text-slate-800 dark:text-emerald-50 mb-3">{mod.title}</h3>
+                <p className="text-slate-500 dark:text-emerald-100/70 font-medium leading-relaxed">
+                  {mod.desc}
+                </p>
+              </div>
+            );
+          })}
+        </div>
       </section>
 
       {/* Aval / Institucional */}
       <section className="py-24 px-6 lg:px-20 bg-emerald-950 dark:bg-amber-950/20 text-center relative overflow-hidden">
-         <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(circle at 50% 50%, white 0%, transparent 50%)' }} />
-         <div className="max-w-4xl mx-auto relative z-10 space-y-8">
-            <h2 className="text-3xl md:text-4xl font-black text-white">Programa de Élite Corporativa</h2>
-            <p className="text-lg font-medium text-emerald-100/80 max-w-2xl mx-auto">
-               Superar exitosamente el PEGI le abre las puertas a negociaciones corporativas y estructuraciones financieras a nivel transnacional.
-            </p>
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-6 pt-6">
-               <div className="flex items-center gap-3 bg-white/10 px-6 py-4 rounded-xl backdrop-blur-md border border-white/20">
-                  <CheckCircle2 className="text-amber-400" />
-                  <span className="font-bold text-white tracking-wide">Certificación Avanzada</span>
-               </div>
-               <div className="flex items-center gap-3 bg-white/10 px-6 py-4 rounded-xl backdrop-blur-md border border-white/20">
-                  <CheckCircle2 className="text-amber-400" />
-                  <span className="font-bold text-white tracking-wide">Red de Brókers TOP</span>
-               </div>
+        <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(circle at 50% 50%, white 0%, transparent 50%)' }} />
+        <div className="max-w-4xl mx-auto relative z-10 space-y-8">
+          <h2 className="text-3xl md:text-4xl font-black text-white">Programa de Élite Corporativa</h2>
+          <p className="text-lg font-medium text-emerald-100/80 max-w-2xl mx-auto">
+            Superar exitosamente el PEGI le abre las puertas a negociaciones corporativas y estructuraciones financieras a nivel transnacional.
+          </p>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-6 pt-6">
+            <div className="flex items-center gap-3 bg-white/10 px-6 py-4 rounded-xl backdrop-blur-md border border-white/20">
+              <CheckCircle2 className="text-amber-400" />
+              <span className="font-bold text-white tracking-wide">Certificación Avanzada</span>
             </div>
-         </div>
+            <div className="flex items-center gap-3 bg-white/10 px-6 py-4 rounded-xl backdrop-blur-md border border-white/20">
+              <CheckCircle2 className="text-amber-400" />
+              <span className="font-bold text-white tracking-wide">Red de Brókers TOP</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Preinscripción (obligatoria) */}
+      <section id="inscripcion" className="py-24 px-6 lg:px-20 bg-white dark:bg-[#022c22] border-t border-slate-200 dark:border-amber-500/20">
+        <div className="max-w-4xl mx-auto">
+          <div className="text-center mb-12 space-y-3">
+            <p className="text-[10px] font-black uppercase tracking-[0.3em] text-amber-500">Comienza aquí</p>
+            <h2 className="text-3xl lg:text-4xl font-black tracking-tight text-slate-900 dark:text-white">
+              Preinscripción al PEGI
+            </h2>
+            <p className="text-sm text-slate-500 dark:text-emerald-50/60">
+              Acceso público bajo modalidad estricta de <span className="font-bold">Preinscripción</span>. Un administrador debe aprobarte para formalizar la inscripción.
+            </p>
+          </div>
+          <div className="rounded-[2.5rem] p-8 md:p-14 border border-slate-200 dark:border-amber-500/20 bg-slate-50 dark:bg-[#011a14]">
+            <PreinscripcionProgramaForm programaCodigo="PEGI" ctaLabel="Preinscribirme al PEGI" />
+          </div>
+        </div>
       </section>
 
     </div>

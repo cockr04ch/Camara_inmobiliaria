@@ -1,10 +1,11 @@
-import React from 'react'
-import Navbar2 from '@/pages/landing/components/Navbar_sc'
+import React, { useState } from 'react'
+import Navbar from '@/pages/landing/components/navbar/Navbar'
 
 export default function Direccion() {
+  const [darkMode, setDarkMode] = useState(false)
   return (
     <div className='min-h-screen bg-[#022c22] text-white font-sans selection:bg-emerald-500/30'>
-      <Navbar2 />
+      <Navbar darkMode={darkMode} setDarkMode={setDarkMode} />
       <header className='px-6 lg:px-20 py-24 bg-gradient-to-b from-[#011a14] to-[#022c22] text-center relative overflow-hidden'>
         <div className='relative z-10 space-y-4'>
           <h1 className='text-5xl lg:text-8xl font-black tracking-tighter leading-none'>

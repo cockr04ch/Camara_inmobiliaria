@@ -10,6 +10,7 @@ interface ConfigKey {
   descripcion: string
   type?: FieldType
   placeholder?: string
+  rows?: number
 }
 
 // ─── Config Groups ────────────────────────────────────────────────────────────
@@ -133,6 +134,40 @@ const CONFIG_GROUPS: Array<{
         { clave: 'rif', descripcion: 'RIF de la cámara', type: 'text', placeholder: 'J-...' },
       ],
     },
+    {
+      label: 'Navegación (navbar)',
+      anchor: '#inicio',
+      color: '#0d9488',
+      keys: [
+        {
+          clave: 'nav_menu',
+          descripcion: 'Menú principal (JSON: array de { title, Tpath, items })',
+          type: 'textarea',
+          rows: 14,
+          placeholder: '[{"title":"Nosotros","Tpath":"","items":[{"label":"...","path":"..."}]}]',
+        },
+        { clave: 'nav_label_inicio', descripcion: 'Etiqueta «Inicio»', type: 'text' },
+        { clave: 'nav_label_login', descripcion: 'Etiqueta «Login»', type: 'text' },
+        { clave: 'nav_label_registro', descripcion: 'Etiqueta «Registro»', type: 'text' },
+        { clave: 'nav_label_salir', descripcion: 'Etiqueta «Salir»', type: 'text' },
+      ],
+    },
+    {
+      label: 'Landing — textos adicionales',
+      anchor: '#formacion',
+      color: '#64748b',
+      keys: [
+        { clave: 'convenios_marquee_titulo', descripcion: 'Título grande (marquee convenios)', type: 'text' },
+        { clave: 'historia_supertitulo', descripcion: 'Supra-título bloque Historia', type: 'text' },
+        { clave: 'historia_titulo', descripcion: 'Título bloque Historia', type: 'text' },
+        { clave: 'historia_link_text', descripcion: 'Texto enlace a cronología completa', type: 'text' },
+        { clave: 'afiliados_label_afiliados', descripcion: 'Etiqueta contador afiliados', type: 'text' },
+        { clave: 'afiliados_label_anos', descripcion: 'Etiqueta contador años', type: 'text' },
+        { clave: 'noticias_leer_mas', descripcion: 'Texto «Leer más» en tarjetas', type: 'text' },
+        { clave: 'noticias_card_meta', descripcion: 'Línea meta bajo imagen en noticias', type: 'text' },
+        { clave: 'directiva_ver_todos', descripcion: 'Botón «ver todos los miembros»', type: 'text' },
+      ],
+    },
   ]
 
 const ALL_CONFIG_KEYS = CONFIG_GROUPS.flatMap(g => g.keys)
@@ -155,7 +190,7 @@ const FieldInput = ({
         value={value}
         onChange={e => onChange(e.target.value)}
         placeholder={field.placeholder ?? field.descripcion}
-        rows={3}
+        rows={field.rows ?? 3}
       />
     )
   }

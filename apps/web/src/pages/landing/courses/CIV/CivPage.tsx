@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import bgBolivar from '@/pages/landing/assets/Camara_Metropolitana.jpg'
-import Navbar2 from '@/pages/landing/components/Navbar_sc'
+import Navbar from '@/pages/landing/components/navbar/Navbar'
 import actaPDF from '@/pages/landing/courses/CIV/acta.pdf'
 
 const useScrollReveal = () => {
@@ -18,6 +18,7 @@ const useScrollReveal = () => {
 }
 
 export default function CodigoEtica() {
+  const [darkMode, setDarkMode] = useState(false)
   const setReveal = useScrollReveal()
 
   const principios = [
@@ -29,7 +30,7 @@ export default function CodigoEtica() {
 
   return (
     <div className='min-h-screen bg-[#022c22] text-white font-sans selection:bg-emerald-500/30'>
-      <Navbar2 />
+      <Navbar darkMode={darkMode} setDarkMode={setDarkMode} />
       <header
         className='relative px-6 lg:px-20 py-20 flex items-center justify-center min-h-[40vh] bg-cover animate-header-bg'
         style={{

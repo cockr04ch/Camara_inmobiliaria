@@ -4,6 +4,8 @@ import CmsArticlesPanel from '@/pages/admin/components/Cms/CmsArticlesPanel'
 import FormacionPanel from '@/pages/admin/components/Formacion/FormacionPanel'
 import AnalyticsPanel from '@/pages/admin/components/Analytics/AnalyticsPanel'
 import UsersPanel from '@/pages/admin/components/Users/UsersPanel'
+import AfiliadosPanel from '@/pages/admin/components/Afiliados/AfiliadosPanel'
+import EstudiantesRegularesPanel from '@/pages/admin/components/Estudiantes/EstudiantesRegularesPanel'
 
 // ─── Placeholder panels ───────────────────────────────────────────────────────
 const Placeholder = ({ title, icon }: { title: string; icon: React.ReactNode }) => (
@@ -71,11 +73,14 @@ const PANELS: Record<string, React.ReactNode> = {
   cms_convenios: <CmsArticlesPanel externalTab="convenios" />,
   cms_directiva: <CmsArticlesPanel externalTab="directiva" />,
   cms_hitos: <CmsArticlesPanel externalTab="hitos" />,
+  cms_paginas: <CmsArticlesPanel externalTab="paginas" />,
   cms_config: <CmsArticlesPanel externalTab="config" />,
   // Main CMS generic redirect
   cms: <CmsArticlesPanel externalTab="config" />, 
   formacion: <FormacionPanel />,
   media: <Placeholder title='Media Library' icon={icons.media} />,
+  afiliados: <AfiliadosPanel />,
+  estudiantes: <EstudiantesRegularesPanel />,
   users: <UsersPanel />,
   admin_users: <SuperAdminUsersPanel />,
   analytics: <AnalyticsPanel />,

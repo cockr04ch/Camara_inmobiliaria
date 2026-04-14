@@ -95,7 +95,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setToken(data.token)
     setUser(newUser)
 
-    // Todos van al panel unificado
+    // Selector de perfiles ("Netflix") solo si tiene múltiples roles
+    if (newUser.roles.length > 1) {
+      navigate('/lobby')
+      return
+    }
+
+    // Redirección directa si solo tiene 1 rol
+    if (newUser.rol === 'admin' || newUser.rol === 'super_admin') {
+      navigate('/admin')
+      return
+    }
     navigate('/panel')
   }, [navigate])
 
