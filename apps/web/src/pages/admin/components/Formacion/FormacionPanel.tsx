@@ -1,8 +1,12 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
+import { API_URL } from '@/config/env'
+import { useAuth } from '@/context/AuthContext'
+import AsignarEstudiantePanel from './AsignarEstudiantePanel'
+import PreinscripcionesPrincipalesPanel from './PreinscripcionesPrincipalesPanel'
+import CursosAdminPanel from './CursosAdminPanel'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 type CibirStatus = 'Pendiente' | 'Aprobado' | 'Rechazado'
-type CursoNivel = 'Principiante' | 'Intermedio' | 'Avanzado'
 
 interface Solicitud {
   id: string
@@ -16,52 +20,11 @@ interface Solicitud {
   nota?: string
 }
 
-interface Curso {
-  id: string
-  titulo: string
-  instructor: string
-  nivel: CursoNivel
-  inscritos: number
-  cupos: number
-  fecha: string
-  precio: string
-  status: 'Activo' | 'Próximamente' | 'Finalizado'
-}
-
-// ─── Mock data ────────────────────────────────────────────────────────────────
-const SOLICITUDES: Solicitud[] = [
-  { id: '1', nombre: 'Carlos Medina', cedula: 'V-18.342.110', email: 'cmedina@gmail.com', telefono: '0424-7123456', empresa: 'Inmobiliaria Orinoco', fechaSolicitud: 'Mar 01, 2026', status: 'Pendiente' },
-  { id: '2', nombre: 'Daniela Rojas', cedula: 'V-22.001.887', email: 'drojas@outlook.com', telefono: '0412-6543210', empresa: 'Independiente', fechaSolicitud: 'Feb 28, 2026', status: 'Aprobado', nota: 'Documentación completa.' },
-  { id: '3', nombre: 'Luis Torrealba', cedula: 'V-15.990.452', email: 'ltorrealba@ciebo.com', telefono: '0416-8881234', empresa: 'Constructora Guayana', fechaSolicitud: 'Feb 27, 2026', status: 'Pendiente' },
-  { id: '4', nombre: 'María Bermúdez', cedula: 'V-20.445.003', email: 'mbermudez@mail.com', telefono: '0426-3340099', empresa: 'Grupo Inmobiliario Norte', fechaSolicitud: 'Feb 25, 2026', status: 'Rechazado', nota: 'Documentación incompleta. Reenviar acta de registro.' },
-  { id: '5', nombre: 'Andrés Páez', cedula: 'V-19.123.777', email: 'apaez@gmail.com', telefono: '0414-5551122', empresa: 'Bienes Raíces Bolívar', fechaSolicitud: 'Feb 24, 2026', status: 'Aprobado' },
-  { id: '6', nombre: 'Génesis Salazar', cedula: 'V-24.780.331', email: 'gsalazar@corp.ve', telefono: '0412-1234567', empresa: 'Inmobiliaria Premium', fechaSolicitud: 'Feb 22, 2026', status: 'Pendiente' },
-]
-
-const CURSOS: Curso[] = [
-  { id: '1', titulo: 'Diplomado en Derecho Inmobiliario', instructor: 'Abog. Luis Martínez', nivel: 'Avanzado', inscritos: 18, cupos: 25, fecha: 'Mar 15, 2026', precio: '$45.00', status: 'Activo' },
-  { id: '2', titulo: 'Marketing Digital para Real Estate', instructor: 'Lic. Elena Pérez', nivel: 'Principiante', inscritos: 30, cupos: 30, fecha: 'Mar 20, 2026', precio: '$29.99', status: 'Activo' },
-  { id: '3', titulo: 'Tasación de Inmuebles Urbanos', instructor: 'Ing. Carlos Ruiz', nivel: 'Intermedio', inscritos: 12, cupos: 20, fecha: 'Abr 5, 2026', precio: '$35.00', status: 'Próximamente' },
-  { id: '4', titulo: 'Neuroventas para Corredores', instructor: 'Coach Mario Vargas', nivel: 'Intermedio', inscritos: 25, cupos: 25, fecha: 'Feb 10, 2026', precio: '$19.99', status: 'Finalizado' },
-]
-
 // ─── Status helpers ───────────────────────────────────────────────────────────
 const CIBIR_STATUS_STYLES: Record<CibirStatus, string> = {
   Pendiente: 'bg-amber-50 text-amber-600',
   Aprobado: 'bg-emerald-50 text-emerald-600',
   Rechazado: 'bg-red-50 text-red-500',
-}
-
-const CURSO_STATUS_STYLES: Record<Curso['status'], string> = {
-  'Activo': 'bg-emerald-50 text-emerald-600',
-  'Próximamente': 'bg-blue-50 text-blue-500',
-  'Finalizado': 'bg-slate-100 text-slate-500',
-}
-
-const NIVEL_STYLES: Record<CursoNivel, string> = {
-  Principiante: 'bg-teal-50 text-teal-600',
-  Intermedio: 'bg-violet-50 text-violet-600',
-  Avanzado: 'bg-rose-50 text-rose-500',
 }
 
 // ─── CIBIR DETAIL ─────────────────────────────────────────────────────────────
@@ -154,38 +117,87 @@ const CibirDetail = ({
         </div>
       </div>
     )}
-
-    {selected.status !== 'Pendiente' && (
-      <button
-        onClick={() => onUpdate(selected.id, 'Pendiente')}
-        className="text-xs font-semibold text-slate-400 hover:text-slate-600 transition-colors self-start"
-      >
-        ↩ Devolver a Pendiente
-      </button>
-    )}
   </div>
 )
 
 // ─── CIBIR PANEL ─────────────────────────────────────────────────────────────
-const CibirPanel = () => {
-  const [solicitudes, setSolicitudes] = useState<Solicitud[]>(SOLICITUDES)
+const CibirPanel = ({ onCountsUpdate }: { onCountsUpdate?: (pendientes: number) => void }) => {
+  const { token } = useAuth()
+  const [solicitudes, setSolicitudes] = useState<Solicitud[]>([])
   const [filter, setFilter] = useState<CibirStatus | 'Todos'>('Todos')
   const [selected, setSelected] = useState<Solicitud | null>(null)
   const [nota, setNota] = useState('')
+  const [counts, setCounts] = useState({ Todos: 0, Pendiente: 0, Aprobado: 0, Rechazado: 0 })
+  const [loading, setLoading] = useState(true)
 
-  const filtered = solicitudes.filter(s => filter === 'Todos' || s.status === filter)
-  const counts = {
-    Todos: solicitudes.length,
-    Pendiente: solicitudes.filter(s => s.status === 'Pendiente').length,
-    Aprobado: solicitudes.filter(s => s.status === 'Aprobado').length,
-    Rechazado: solicitudes.filter(s => s.status === 'Rechazado').length,
+  const authHeaders: Record<string, string> = token ? { Authorization: `Bearer ${token}` } : {}
+
+  const fetchSolicitudes = async () => {
+    setLoading(true)
+    try {
+      const tabParam = filter.toLowerCase();
+      const res = await fetch(`${API_URL}/api/afiliados/cibir/solicitudes?tab=${tabParam}`, { headers: authHeaders })
+      const json = await res.json()
+
+      if (json.success) {
+        const nuevosCuentas = {
+          Todos: json.meta.counts.todos || 0,
+          Pendiente: json.meta.counts.pendiente || 0,
+          Aprobado: json.meta.counts.aprobado || 0,
+          Rechazado: json.meta.counts.rechazado || 0,
+        }
+        setCounts(nuevosCuentas)
+        if (onCountsUpdate) onCountsUpdate(nuevosCuentas.Pendiente)
+
+        const mapped: Solicitud[] = json.data.map((item: { id_agremiado: string | number; nombre_completo: string; cedula_rif: string; email: string; telefono: string; estatus: string; fecha_registro: string }) => {
+          let status: CibirStatus = 'Pendiente'
+          if (item.estatus === 'CIBIR') status = 'Aprobado'
+          if (item.estatus === 'Rechazado' || item.estatus === 'Suspendido') status = 'Rechazado'
+
+          return {
+            id: String(item.id_agremiado),
+            nombre: item.nombre_completo,
+            cedula: item.cedula_rif,
+            email: item.email,
+            telefono: item.telefono || 'No indicado',
+            empresa: 'Por definir',
+            fechaSolicitud: new Date(item.fecha_registro).toLocaleDateString('es-ES', { month: 'short', day: '2-digit', year: 'numeric' }),
+            status,
+          }
+        })
+        setSolicitudes(mapped)
+      }
+    } catch (error) {
+      console.error(error)
+    } finally {
+      setLoading(false)
+    }
   }
 
-  const updateStatus = (id: string, status: CibirStatus) => {
-    setSolicitudes(prev => prev.map(s => s.id === id ? { ...s, status, nota: nota || s.nota } : s))
-    setSelected(prev => prev ? { ...prev, status, nota: nota || prev.nota } : null)
-    setNota('')
+  useEffect(() => {
+    fetchSolicitudes()
+    setSelected(null)
+  }, [filter])
+
+  const updateStatus = async (id: string, status: CibirStatus) => {
+    try {
+      if (status === 'Aprobado') {
+        await fetch(`${API_URL}/api/afiliados/${id}/aprobar`, { method: 'PATCH', headers: authHeaders })
+      } else if (status === 'Rechazado') {
+        await fetch(`${API_URL}/api/afiliados/${id}/rechazar`, { method: 'PATCH', headers: authHeaders })
+      }
+      // Re-descargar información de servidor 
+      if (selected && String(selected.id) === String(id)) {
+        setSelected({ ...selected, status });
+      }
+      setNota('')
+      fetchSolicitudes()
+    } catch (error) {
+      console.error('Error actualizando estado:', error)
+    }
   }
+
+  const filtered = solicitudes;
 
   return (
     <div className="flex h-full overflow-hidden">
@@ -217,7 +229,9 @@ const CibirPanel = () => {
 
         {/* List */}
         <div className="flex-1 overflow-y-auto divide-y divide-gray-50">
-          {filtered.map(s => (
+          {loading ? (
+            <div className="p-4 text-center text-xs text-slate-400 font-semibold uppercase tracking-widest mt-10">Cargando...</div>
+          ) : filtered.map(s => (
             <button
               key={s.id}
               onClick={() => { setSelected(s); setNota('') }}
@@ -237,6 +251,9 @@ const CibirPanel = () => {
               <span className="text-[10px] text-slate-300">{s.fechaSolicitud}</span>
             </button>
           ))}
+          {!loading && filtered.length === 0 && (
+            <div className="p-4 text-center text-xs text-slate-400 mt-10">No hay solicitudes en esta vista.</div>
+          )}
         </div>
       </div>
 
@@ -267,107 +284,21 @@ const CibirPanel = () => {
   )
 }
 
-// ─── CURSOS PANEL ─────────────────────────────────────────────────────────────
-const CursosAdminPanel = () => {
-  return (
-    <div className="p-4 sm:p-6 overflow-y-auto h-full">
-      <div className="flex items-center justify-between mb-5 gap-3 flex-wrap">
-        <div>
-          <h3 className="text-sm font-semibold text-slate-800">Cursos & Talleres</h3>
-          <p className="text-xs text-slate-400 mt-0.5">{CURSOS.length} programas registrados</p>
-        </div>
-        <button className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-[#00D084] text-white text-xs font-semibold hover:bg-[#00B870] transition-colors whitespace-nowrap">
-          <svg viewBox="0 0 24 24" className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round">
-            <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
-          </svg>
-          Nuevo Curso
-        </button>
-      </div>
-
-      {/* ── MOBILE: cards ── */}
-      <div className="sm:hidden flex flex-col gap-3">
-        {CURSOS.map(c => (
-          <div key={c.id} className="bg-white rounded-2xl border border-gray-100 p-4 flex flex-col gap-3">
-            <div className="flex items-start justify-between gap-2">
-              <p className="font-semibold text-slate-800 text-sm leading-tight flex-1">{c.titulo}</p>
-              <span className={`flex-shrink-0 text-[10px] font-semibold px-2.5 py-1 rounded-full ${CURSO_STATUS_STYLES[c.status]}`}>
-                {c.status}
-              </span>
-            </div>
-            <div className="flex flex-wrap gap-x-4 gap-y-1.5 text-xs text-slate-500">
-              <span>{c.instructor}</span>
-              <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${NIVEL_STYLES[c.nivel]}`}>{c.nivel}</span>
-            </div>
-            <div className="flex items-center gap-3 text-xs text-slate-400">
-              <span>📅 {c.fecha}</span>
-              <span className="font-semibold text-slate-700">{c.precio}</span>
-            </div>
-            {/* Cupos bar */}
-            <div className="flex items-center gap-2">
-              <div className="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                <div className="h-full bg-[#00D084] rounded-full" style={{ width: `${(c.inscritos / c.cupos) * 100}%` }} />
-              </div>
-              <span className="text-[10px] text-slate-500 whitespace-nowrap tabular-nums">{c.inscritos}/{c.cupos} cupos</span>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {/* ── DESKTOP: table with horizontal scroll fallback ── */}
-      <div className="hidden sm:block bg-white rounded-2xl border border-gray-100 overflow-x-auto">
-        <table className="w-full text-sm min-w-[640px]">
-          <thead>
-            <tr className="bg-gray-50/60">
-              {['CURSO', 'INSTRUCTOR', 'NIVEL', 'INSCRITOS', 'FECHA', 'PRECIO', 'ESTADO'].map(h => (
-                <th key={h} className="px-4 py-3 text-left text-[10px] font-semibold text-slate-400 tracking-wide uppercase whitespace-nowrap">
-                  {h}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-50">
-            {CURSOS.map(c => (
-              <tr key={c.id} className="hover:bg-slate-50/50 transition-colors">
-                <td className="px-4 py-3">
-                  <p className="font-semibold text-slate-800 text-xs leading-tight max-w-[200px]">{c.titulo}</p>
-                </td>
-                <td className="px-4 py-3 text-xs text-slate-500 whitespace-nowrap">{c.instructor}</td>
-                <td className="px-4 py-3">
-                  <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${NIVEL_STYLES[c.nivel]}`}>{c.nivel}</span>
-                </td>
-                <td className="px-4 py-3">
-                  <div className="flex items-center gap-2">
-                    <div className="flex-1 h-1.5 bg-gray-100 rounded-full w-16 overflow-hidden">
-                      <div className="h-full bg-[#00D084] rounded-full" style={{ width: `${(c.inscritos / c.cupos) * 100}%` }} />
-                    </div>
-                    <span className="text-xs text-slate-500 whitespace-nowrap tabular-nums">{c.inscritos}/{c.cupos}</span>
-                  </div>
-                </td>
-                <td className="px-4 py-3 text-xs text-slate-400 whitespace-nowrap">{c.fecha}</td>
-                <td className="px-4 py-3 text-xs font-semibold text-slate-700 tabular-nums">{c.precio}</td>
-                <td className="px-4 py-3">
-                  <span className={`text-[10px] font-semibold px-2.5 py-1 rounded-full ${CURSO_STATUS_STYLES[c.status]}`}>{c.status}</span>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  )
-}
 
 // ─── MAIN FORMACION PANEL ─────────────────────────────────────────────────────
-type SubTab = 'cursos' | 'cibir'
+type SubTab = 'cursos' | 'preinscripciones' | 'asignar'
 
 const FormacionPanel = () => {
+  const { token } = useAuth()
   const [activeTab, setActiveTab] = useState<SubTab>('cursos')
 
-  const pendientes = SOLICITUDES.filter(s => s.status === 'Pendiente').length
+  // Cargar contadores globales (opcional, removido si no hace falta badge, o se puede re-agregar luego)
+  useEffect(() => {}, [token])
 
   const tabs: { id: SubTab; label: string; badge?: number }[] = [
     { id: 'cursos', label: 'Cursos & Talleres' },
-    { id: 'cibir', label: 'CIBIR', badge: pendientes },
+    { id: 'preinscripciones', label: 'Preinscripciones' },
+    { id: 'asignar', label: 'Asignar Estudiante' },
   ]
 
   return (
@@ -404,7 +335,8 @@ const FormacionPanel = () => {
       {/* Content */}
       <div className="flex-1 overflow-hidden">
         {activeTab === 'cursos' && <CursosAdminPanel />}
-        {activeTab === 'cibir' && <CibirPanel />}
+        {activeTab === 'preinscripciones' && <PreinscripcionesPrincipalesPanel />}
+        {activeTab === 'asignar' && <AsignarEstudiantePanel />}
       </div>
     </div>
   )
