@@ -354,3 +354,79 @@ export const deleteConfig = async (req: Request, res: Response) => {
     return res.status(500).json({ success: false, message: 'Error al eliminar clave de configuración' });
   }
 };
+
+// ─────────────────────────────────────────────────────────────────────────────
+// PÁGINAS DINÁMICAS (JSON por slug — portales públicos)
+// ─────────────────────────────────────────────────────────────────────────────
+
+export const getPaginasList = async (_req: Request, res: Response) => {
+  try {
+    const result = await db.execute({
+      sql: `SELECT slug, actualizado_en, length(contenido) AS contenido_len FROM cms_paginas ORDER BY slug ASC`,
+      args: [],
+    });
+    return res.json({ success: true, data: result.rows });
+  } catch (error) {
+    console.error('getPaginasList:', error);
+    return res.status(500).json({ success: false, message: 'Error al listar páginas CMS' });
+  }
+};
+
+export const getPaginaBySlug = async (req: Request, res: Response) => {
+  try {
+    const slug = String(req.params.slug || '').trim();
+    if (!slug) return res.status(400).json({ success: false, message: 'slug requerido' });
+    const result = await db.execute({
+      sql: `SELECT slug, contenido, actualizado_en FROM cms_paginas WHERE slug = ? LIMIT 1`,
+      args: [slug],
+    });
+    if (result.rows.length === 0) {
+      return res.status(404).json({ success: false, message: 'Página no encontrada' });
+    }
+    return res.json({ success: true, data: result.rows[0] });
+  } catch (error) {
+    console.error('getPaginaBySlug:', error);
+    return res.status(500).json({ success: false, message: 'Error al obtener página CMS' });
+  }
+};
+
+export const upsertPagina = async (req: Request, res: Response) => {
+  try {
+    const slug = String(req.params.slug || '').trim();
+    const { contenido } = req.body as { contenido?: string };
+    if (!slug) return res.status(400).json({ success: false, message: 'slug requerido' });
+    if (typeof contenido !== 'string' || contenido.length === 0) {
+      return res.status(400).json({ success: false, message: 'contenido (JSON) es requerido' });
+    }
+    JSON.parse(contenido);
+
+    const now = new Date().toISOString();
+    const result = await db.execute({
+      sql: `INSERT INTO cms_paginas (slug, contenido, actualizado_en)
+            VALUES (?, ?, ?)
+            ON CONFLICT(slug) DO UPDATE SET
+              contenido = excluded.contenido,
+              actualizado_en = excluded.actualizado_en
+            RETURNING slug, actualizado_en`,
+      args: [slug, contenido, now],
+    });
+    return res.json({ success: true, data: result.rows[0] });
+  } catch (error: any) {
+    if (error instanceof SyntaxError) {
+      return res.status(400).json({ success: false, message: 'contenido no es JSON válido' });
+    }
+    console.error('upsertPagina:', error);
+    return res.status(500).json({ success: false, message: 'Error al guardar página CMS' });
+  }
+};
+
+export const deletePagina = async (req: Request, res: Response) => {
+  try {
+    const slug = String(req.params.slug || '').trim();
+    await db.execute({ sql: `DELETE FROM cms_paginas WHERE slug = ?`, args: [slug] });
+    return res.json({ success: true, message: 'Página eliminada' });
+  } catch (error) {
+    console.error('deletePagina:', error);
+    return res.status(500).json({ success: false, message: 'Error al eliminar página CMS' });
+  }
+};

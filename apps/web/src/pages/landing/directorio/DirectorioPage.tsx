@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import Fuse from 'fuse.js';
 import { Search, Users, ShieldCheck, Loader2 } from 'lucide-react';
 import { AfiliadoCard, AfiliadoData } from './components/AfiliadoCard';
-import Navbar from '@/pages/landing/components/Navbar';
+import Navbar from '@/pages/landing/components/navbar/Navbar';
 import { Link } from 'react-router-dom';
 import { API_URL } from '@/config/env';
 
@@ -50,15 +50,15 @@ const DirectorioPage = () => {
 
   return (
     <div className={`min-h-screen flex flex-col font-sans transition-colors duration-500 ${darkMode ? 'dark bg-[#022c22] text-slate-100' : 'bg-slate-50 text-slate-800'}`}>
-      <Navbar 
-        darkMode={darkMode} 
-        setDarkMode={setDarkMode} 
-        setIsSesionModalOpen={setIsLoginOpen} 
-        setIsRegisterModalOpen={setIsRegisterOpen} 
+      <Navbar
+        darkMode={darkMode}
+        setDarkMode={setDarkMode}
+        setIsSesionModalOpen={setIsLoginOpen}
+        setIsRegisterModalOpen={setIsRegisterOpen}
       />
-      
+
       <main className="flex-grow pt-24 pb-20">
-        
+
         {/* Header Section */}
         <section className="bg-[var(--color-primary)] text-white py-16 px-6 relative overflow-hidden">
           <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&q=80')] bg-cover bg-center opacity-10 mix-blend-overlay"></div>
@@ -96,28 +96,28 @@ const DirectorioPage = () => {
 
         {/* Results Section */}
         <section className="max-w-7xl mx-auto px-6 py-12">
-          
+
           {loading ? (
-             <div className="flex flex-col items-center justify-center py-20 opacity-50">
-               <Loader2 size={48} className="animate-spin text-[var(--color-primary)] mb-4" />
-               <p className="font-bold text-lg text-slate-500">Cargando directorio seguro...</p>
-             </div>
+            <div className="flex flex-col items-center justify-center py-20 opacity-50">
+              <Loader2 size={48} className="animate-spin text-[var(--color-primary)] mb-4" />
+              <p className="font-bold text-lg text-slate-500">Cargando directorio seguro...</p>
+            </div>
           ) : resultados.length > 0 ? (
-             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-               {resultados.map((afiliado) => (
-                 <AfiliadoCard key={afiliado.id_agremiado} afiliado={afiliado} />
-               ))}
-             </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+              {resultados.map((afiliado) => (
+                <AfiliadoCard key={afiliado.id_agremiado} afiliado={afiliado} />
+              ))}
+            </div>
           ) : (
-             <div className="text-center py-20 bg-white dark:bg-[#04432f] rounded-3xl border border-slate-100 dark:border-emerald-500/20 shadow-sm max-w-2xl mx-auto transition-colors">
-               <div className="w-20 h-20 bg-slate-50 dark:bg-[#022c22] rounded-full flex items-center justify-center mx-auto mb-4 border dark:border-emerald-500/10">
-                 <Users size={32} className="text-slate-400 dark:text-emerald-400" />
-               </div>
-               <h3 className="text-2xl font-black text-slate-800 dark:text-emerald-50 mb-2">No se encontraron resultados</h3>
-               <p className="text-slate-500 dark:text-emerald-100/70 font-medium max-w-md mx-auto">
-                 No pudimos encontrar ningún profesional que coincida con "<strong>{searchQuery}</strong>". Intenta buscar con otros términos.
-               </p>
-             </div>
+            <div className="text-center py-20 bg-white dark:bg-[#04432f] rounded-3xl border border-slate-100 dark:border-emerald-500/20 shadow-sm max-w-2xl mx-auto transition-colors">
+              <div className="w-20 h-20 bg-slate-50 dark:bg-[#022c22] rounded-full flex items-center justify-center mx-auto mb-4 border dark:border-emerald-500/10">
+                <Users size={32} className="text-slate-400 dark:text-emerald-400" />
+              </div>
+              <h3 className="text-2xl font-black text-slate-800 dark:text-emerald-50 mb-2">No se encontraron resultados</h3>
+              <p className="text-slate-500 dark:text-emerald-100/70 font-medium max-w-md mx-auto">
+                No pudimos encontrar ningún profesional que coincida con "<strong>{searchQuery}</strong>". Intenta buscar con otros términos.
+              </p>
+            </div>
           )}
 
         </section>

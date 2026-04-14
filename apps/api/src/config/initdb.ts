@@ -41,6 +41,31 @@ const statements = [
     CONSTRAINT chk_email_formato CHECK (email LIKE '%@%.%')
   )`,
 
+  // ===========================================================
+  // FASE 1.5 — ESTUDIANTES (REGULARES / NO NECESARIAMENTE CIBIR)
+  // ===========================================================
+  `CREATE TABLE IF NOT EXISTS estudiantes (
+    id_estudiante     INTEGER     PRIMARY KEY,
+    -- Si el estudiante es agremiado, lo vinculamos (opcional)
+    id_agremiado      INTEGER,
+    cedula_rif        TEXT,
+    nombre_completo   TEXT        NOT NULL,
+    email             TEXT        NOT NULL,
+    telefono          TEXT,
+    tipo              TEXT        NOT NULL DEFAULT 'Regular'
+                      CHECK (tipo IN ('Regular','Agremiado')),
+    creado_en         TEXT        NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ','now')),
+    actualizado_en    TEXT,
+    CONSTRAINT fk_estudiante_agremiado
+      FOREIGN KEY (id_agremiado) REFERENCES agremiados(id_agremiado)
+      ON DELETE SET NULL ON UPDATE CASCADE,
+    CONSTRAINT chk_estudiante_email CHECK (email LIKE '%@%.%')
+  )`,
+
+  `CREATE UNIQUE INDEX IF NOT EXISTS uq_estudiantes_email ON estudiantes(email)`,
+  `CREATE UNIQUE INDEX IF NOT EXISTS uq_estudiantes_cedula_rif ON estudiantes(cedula_rif)`,
+  `CREATE INDEX IF NOT EXISTS idx_estudiantes_agremiado ON estudiantes(id_agremiado)`,
+
   `CREATE TABLE IF NOT EXISTS verificaciones_email (
     token_verificacion  TEXT PRIMARY KEY,
     nombre_completo     TEXT NOT NULL,
@@ -86,6 +111,7 @@ const statements = [
     id_instructor       INTEGER     NOT NULL,
     nombre              TEXT        NOT NULL,
     descripcion         TEXT,
+    imagen_url          TEXT,
     nivel_academico     TEXT,
     cupos_totales       INTEGER     NOT NULL CHECK (cupos_totales > 0),
     cupos_disponibles   INTEGER     NOT NULL CHECK (cupos_disponibles >= 0),
@@ -120,6 +146,44 @@ const statements = [
 
   `CREATE INDEX IF NOT EXISTS idx_inscripciones_agremiado ON inscripciones_academicas(id_agremiado)`,
   `CREATE INDEX IF NOT EXISTS idx_inscripciones_curso     ON inscripciones_academicas(id_curso)`,
+
+  // ── Inscripciones (estudiantes) — permite Preinscripción y control admin ─────
+  `CREATE TABLE IF NOT EXISTS inscripciones_cursos (
+    id_inscripcion     INTEGER     PRIMARY KEY,
+    id_estudiante      INTEGER     NOT NULL,
+    id_curso           INTEGER, -- si todavía es solo preinscripción por programa, puede ser NULL
+    programa_codigo    TEXT,    -- 'PADI' | 'PEGI' | 'PREANI' | 'CIBIR' (catálogo público)
+    estatus            TEXT      NOT NULL DEFAULT 'Preinscrito'
+                      CHECK (estatus IN ('Preinscrito','Inscrito','Rechazado','Cancelado')),
+    nota_admin         TEXT,
+    asignado_por       INTEGER, -- users.id
+    aprobado_por       INTEGER, -- users.id
+    creado_en          TEXT      NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ','now')),
+    actualizado_en     TEXT,
+    CONSTRAINT fk_insc_estudiante
+      FOREIGN KEY (id_estudiante) REFERENCES estudiantes(id_estudiante)
+      ON DELETE RESTRICT ON UPDATE CASCADE,
+    CONSTRAINT fk_insc_curso
+      FOREIGN KEY (id_curso) REFERENCES cursos(id_curso)
+      ON DELETE RESTRICT ON UPDATE CASCADE,
+    CONSTRAINT fk_insc_asignado_por
+      FOREIGN KEY (asignado_por) REFERENCES users(id)
+      ON DELETE SET NULL ON UPDATE CASCADE,
+    CONSTRAINT fk_insc_aprobado_por
+      FOREIGN KEY (aprobado_por) REFERENCES users(id)
+      ON DELETE SET NULL ON UPDATE CASCADE
+  )`,
+
+  // Evitar duplicados (SQLite permite índices parciales)
+  `CREATE UNIQUE INDEX IF NOT EXISTS uq_insc_estudiante_programa_pre
+    ON inscripciones_cursos(id_estudiante, programa_codigo)
+    WHERE programa_codigo IS NOT NULL AND (id_curso IS NULL)`,
+  `CREATE UNIQUE INDEX IF NOT EXISTS uq_insc_estudiante_curso
+    ON inscripciones_cursos(id_estudiante, id_curso)
+    WHERE id_curso IS NOT NULL`,
+  `CREATE INDEX IF NOT EXISTS idx_insc_estatus ON inscripciones_cursos(estatus)`,
+  `CREATE INDEX IF NOT EXISTS idx_insc_programa ON inscripciones_cursos(programa_codigo)`,
+  `CREATE INDEX IF NOT EXISTS idx_insc_curso ON inscripciones_cursos(id_curso)`,
 
   `CREATE TABLE IF NOT EXISTS certificados (
     id_certificado      INTEGER     PRIMARY KEY,
@@ -324,7 +388,15 @@ const statements = [
     clave         TEXT     PRIMARY KEY,
     valor         TEXT     NOT NULL,
     descripcion   TEXT
-  )`
+  )`,
+
+  `CREATE TABLE IF NOT EXISTS cms_paginas (
+    slug            TEXT     PRIMARY KEY,
+    contenido       TEXT     NOT NULL,
+    actualizado_en  TEXT     NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ','now'))
+  )`,
+
+  `CREATE INDEX IF NOT EXISTS idx_cms_paginas_actualizado ON cms_paginas(actualizado_en)`
 ]
 
 async function initDb(): Promise<void> {

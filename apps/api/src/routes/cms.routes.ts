@@ -6,6 +6,7 @@ import {
   getDirectiva, createMiembroDirectiva, updateMiembroDirectiva, deleteMiembroDirectiva,
   getHitos, createHito, updateHito, deleteHito,
   getConfig, upsertConfig, upsertConfigBatch, deleteConfig,
+  getPaginasList, getPaginaBySlug, upsertPagina, deletePagina,
 } from '../controllers/cms.controller.js';
 
 const router = Router();
@@ -45,5 +46,11 @@ router.get('/config', getConfig);
 router.post('/config', upsertConfig);
 router.post('/config/batch', upsertConfigBatch);
 router.delete('/config/:clave', deleteConfig);
+
+// ── Páginas dinámicas (JSON) ────────────────────────────────────────────────
+router.get('/paginas', getPaginasList);
+router.get('/paginas/:slug', getPaginaBySlug);
+router.put('/paginas/:slug', upsertPagina);
+router.delete('/paginas/:slug', deletePagina);
 
 export { router as cmsRoutes };

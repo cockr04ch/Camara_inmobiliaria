@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Shield, GraduationCap, BarChart3, Handshake } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import Navbar from '@/pages/landing/components/Navbar';
+import Navbar from '@/pages/landing/components/navbar/Navbar';
 import LoginModal from '@/pages/landing/components/LoginModal';
 import RegisterModal from '@/pages/landing/components/RegisterModal';
 import CibirHero from '@/pages/landing/courses/CIBIR/components/CibirHero';

@@ -21,10 +21,13 @@ import PreaniPage          from '@/pages/landing/formacion/PreaniPage'
 import PegiPage            from '@/pages/landing/formacion/PegiPage'
 import PadiPage            from '@/pages/landing/formacion/PadiPage'
 import SetupPasswordPage    from '@/pages/auth/SetupPasswordPage'
+import LobbyPage           from '@/pages/lobby/LobbyPage'
+import ScrollToHash        from '@/components/ScrollToHash'
 
 export default function App() {
   return (
     <BrowserRouter>
+      <ScrollToHash />
       <AuthProvider>
         <Routes>
           {/* Rutas públicas */}
@@ -60,6 +63,7 @@ export default function App() {
           {/* ── Panel Unificado (afiliado + admin en una sola vista) ── */}
           <Route element={<ProtectedRoute />}>
             <Route path='/panel' element={<PanelPage />} />
+            <Route path='/lobby' element={<LobbyPage />} />
           </Route>
 
           {/* ── CMS Visual Editor (solo admin) ── */}
