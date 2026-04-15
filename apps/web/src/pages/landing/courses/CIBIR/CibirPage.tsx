@@ -1,158 +1,276 @@
-import React, { useState } from 'react';
-import { Shield, GraduationCap, BarChart3, Handshake } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import bgCibir from "../../assets/Pzo.jpg"; 
+import heroCibir from "../../assets/Cibir.jpg"; 
 import Navbar from '@/pages/landing/components/navbar/Navbar';
-import LoginModal from '@/pages/landing/components/LoginModal';
-import RegisterModal from '@/pages/landing/components/RegisterModal';
-import CibirHero from '@/pages/landing/courses/CIBIR/components/CibirHero';
-import BeneficioCard from '@/pages/landing/courses/CIBIR/components/BeneficioCard';
-import PreinscripcionForm from '@/pages/landing/courses/CIBIR/components/PreinscripcionForm';
+import Estudiosa from "../../assets/estudiosa1.png"; 
+import Estudioso from "../../assets/estudioso1.png";
 
+// --- INTERFACES ---
+interface ModuloProps {
+  numero: string;
+  titulo: string;
+  descripcion: string;
+  index: number;
+}
 
-// ─── Data ─────────────────────────────────────────────────────────────────────
+// --- HOOKS ---
+const useScrollReveal = () => {
+  const [ref, setRef] = useState<HTMLElement | null>(null);
 
-const BENEFICIOS = [
-  {
-    icon: Shield,
-    title: 'Representación Gremial',
-    desc: 'Defensa activa de los intereses de nuestros afiliados y respaldo institucional ante entes públicos y privados.',
-  },
-  {
-    icon: GraduationCap,
-    title: 'Formación Continua',
-    desc: 'Acceso prioritario al programa PREANI (avalado por la UCAB) y talleres técnicos especializados.',
-  },
-  {
-    icon: BarChart3,
-    title: 'Información y Estadísticas',
-    desc: 'Reciba boletines económicos exclusivos y reportes actualizados sobre el comportamiento del mercado inmobiliario regional.',
-  },
-  {
-    icon: Handshake,
-    title: 'Alianzas y Beneficios',
-    desc: 'Forme parte de una red de contactos de alto nivel y acceda a convenios comerciales exclusivos para el gremio.',
-  },
-];
+  useEffect(() => {
+    if (!ref) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add("active");
+        }
+      },
+      { threshold: 0.1 }
+    );
+    observer.observe(ref);
+    return () => observer.disconnect();
+  }, [ref]);
 
-// ─── Main Page ────────────────────────────────────────────────────────────────
+  return setRef;
+};
 
-const CibirPage = () => {
-  const [darkMode, setDarkMode] = useState(true);
-  const [loginOpen, setLoginOpen] = useState(false);
-  const [registerOpen, setRegisterOpen] = useState(false);
+// --- COMPONENTES ---
+
+const ModuloCibir: React.FC<ModuloProps> = ({ numero, titulo, descripcion, index }) => {
+  const setReveal = useScrollReveal();
+  const isEven = index % 2 === 0;
 
   return (
-    <div className="min-h-screen font-sans selection:bg-emerald-500/30" style={{ color: 'var(--color-text-base)' }}>
-
-      {/* ── Shared Landing Navbar ─────────────────────────────── */}
-      <Navbar
-        darkMode={darkMode}
-        setDarkMode={setDarkMode}
-        setIsSesionModalOpen={setLoginOpen}
-        setIsRegisterModalOpen={setRegisterOpen}
-      />
-
-      {/* ── Hero ─────────────────────────────────────────────── */}
-      <CibirHero />
-
-      {/* ── Beneficios ───────────────────────────────────────── */}
-      <section id="beneficios" className="py-24 px-6 lg:px-20" style={{ backgroundColor: 'var(--color-bg-subtle)' }}>
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16 space-y-3">
-            <p
-              className="text-[10px] font-black uppercase tracking-[0.3em]"
-              style={{ color: 'var(--color-accent-hover)' }}
-            >
-              Valor Gremial
-            </p>
-            <h2
-              className="text-4xl lg:text-5xl font-black tracking-tight"
-              style={{ color: 'var(--color-primary)' }}
-            >
-              ¿Por qué afiliarse a CIBIR?
-            </h2>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {BENEFICIOS.map((b, i) => (
-              <BeneficioCard key={i} icon={b.icon} title={b.title} desc={b.desc} />
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── CTA Quote ────────────────────────────────────────── */}
-      <section
-        className="py-20 px-6 lg:px-20 text-white text-center relative overflow-hidden"
-        style={{ backgroundColor: 'var(--color-primary)' }}
-      >
-        <div
-          className="absolute inset-0 opacity-10"
-          style={{ backgroundImage: 'radial-gradient(circle at 70% 50%, var(--color-accent) 0%, transparent 60%)' }}
-        />
-        <div className="relative z-10 max-w-3xl mx-auto space-y-6">
-          <p className="text-3xl font-black italic leading-tight">
-            "Ser parte de la Cámara Inmobiliaria es sinónimo de{' '}
-            <span style={{ color: 'var(--color-accent)' }}>seguridad jurídica</span> y transparencia."
-          </p>
-          <p className="text-sm font-bold opacity-60 uppercase tracking-widest">Cámara Inmobiliaria del Estado Bolívar</p>
-        </div>
-      </section>
-
-      {/* ── Formulario de Preinscripción ─────────────────────── */}
-      <section id="formulario" className="py-24 px-6 lg:px-20" style={{ backgroundColor: 'var(--color-bg-surface)' }}>
-        <div className="max-w-4xl mx-auto">
-          <div className="text-center mb-12 space-y-3">
-            <p
-              className="text-[10px] font-black uppercase tracking-[0.3em]"
-              style={{ color: 'var(--color-accent-hover)' }}
-            >
-              Comienza Aquí
-            </p>
-            <h2
-              className="text-3xl lg:text-4xl font-black tracking-tight"
-              style={{ color: 'var(--color-primary)' }}
-            >
-              Inicia tu proceso de preinscripción
-            </h2>
-            <p className="text-sm" style={{ color: 'var(--color-text-muted)' }}>
-              Complete los campos para que un representante del gremio lo contacte e inicie su trámite.
-            </p>
-          </div>
-          <div
-            className="rounded-[2.5rem] p-8 md:p-14 border"
-            style={{
-              backgroundColor: 'var(--color-bg-subtle)',
-              border: '1px solid var(--color-border)',
-            }}
-          >
-            <PreinscripcionForm />
-          </div>
-        </div>
-      </section>
-
-      {/* ── Footer ───────────────────────────────────────────── */}
-      <footer
-        className="px-6 lg:px-20 py-14 text-center border-t space-y-4"
-        style={{ backgroundColor: 'var(--color-primary)', borderColor: 'rgba(255,255,255,0.07)' }}
-      >
-        <p className="text-sm font-bold" style={{ color: 'rgba(255,255,255,0.5)' }}>
-          Cámara Inmobiliaria del Estado Bolívar (CIBIR) — Afiliada a la CIV
+    <div 
+      ref={(el) => setReveal(el)} 
+      className="reveal-on-scroll relative mb-16 md:mb-20 flex flex-col md:flex-row items-center"
+    >
+      {/* Indicador de Módulo con Diseño PADI */}
+      <div className="absolute left-1/2 -translate-x-1/2 hidden md:flex w-12 h-12 rounded-xl bg-emerald-500 items-center justify-center z-20 shadow-lg border-2 border-white text-white font-black">
+        {numero}
+      </div>
+      
+      <div className={`w-full md:w-1/2 ${isEven ? 'md:pr-20 md:text-right' : 'md:pl-20 md:order-last text-left'}`}>
+        <h3 className="text-2xl font-black text-[#022c22] mb-3 uppercase tracking-tight">
+          {titulo}
+        </h3>
+        <p className="text-slate-600 leading-relaxed text-lg italic">
+          {descripcion}
         </p>
-        <div className="flex justify-center gap-6 text-xs font-bold" style={{ color: 'rgba(255,255,255,0.3)' }}>
-          <Link to="/" className="hover:opacity-80 transition-opacity">Inicio</Link>
-          <a href="#beneficios" className="hover:opacity-80 transition-opacity">Beneficios</a>
-          <a href="#formulario" className="hover:opacity-80 transition-opacity">Afiliación</a>
-        </div>
-        <p className="text-[10px] uppercase tracking-[0.2em]" style={{ color: 'rgba(255,255,255,0.2)' }}>
-          © 2026 CIBIR Bolívar. Todos los derechos reservados.
-        </p>
-      </footer>
-
-      {/* ── Modales ──────────────────────────────────────────── */}
-      {loginOpen && <LoginModal onClose={() => setLoginOpen(false)} />}
-      {registerOpen && <RegisterModal onClose={() => setRegisterOpen(false)} />}
+      </div>
+      
+      <div className="hidden md:block md:w-1/2" />
     </div>
   );
 };
 
-export default CibirPage;
+export default function Cibir() {
+  const navigate = useNavigate();
+  const [darkMode, setDarkMode] = useState(false);
+  const setRevealEstudiosa = useScrollReveal(); 
+  const setRevealEstudioso = useScrollReveal(); 
+
+  // Definimos los módulos con la misma estructura detallada
+  const modulos: Omit<ModuloProps, "index">[] = [
+    { 
+        numero: "01", 
+        titulo: "Negocio de Bienes Raíces", 
+        descripcion: "Introducción técnica al mercado inmobiliario, analizando el entorno económico y los conceptos fundamentales del corretaje." 
+    },
+    { 
+        numero: "02", 
+        titulo: "Nociones Jurídicas", 
+        descripcion: "Estudio del marco legal, contratos, registros y notarías para garantizar operaciones seguras y transparentes." 
+    },
+    { 
+        numero: "03", 
+        titulo: "Comercialización Inmobiliaria", 
+        descripcion: "Técnicas avanzadas de captación, marketing digital inmobiliario y cierre de ventas efectivo." 
+    },
+    { 
+        numero: "04", 
+        titulo: "Hábitos y Buenas Prácticas", 
+        descripcion: "Desarrollo de la ética profesional, gestión del tiempo y estándares internacionales de calidad en el servicio." 
+    },
+    { 
+        numero: "05", 
+        titulo: "Principios de Valoración", 
+        descripcion: "Fundamentos de tasación para determinar el valor real de mercado basándose en métodos comparativos y técnicos." 
+    }
+  ];
+
+  return (
+    <div className="min-h-screen bg-[#022c22] text-white font-sans selection:bg-emerald-500/30 scroll-smooth">
+      <Navbar/>
+
+      {/* HEADER CON ANIMACIÓN DE FONDO Y TEXTO SINCRONIZADA */}
+      <header
+        className="relative px-6 lg:px-20 py-20 lg:py-32 flex items-center justify-center min-h-[55vh] bg-cover animate-header-bg"
+        style={{
+          backgroundImage: `linear-gradient(rgba(2, 44, 34, 0.8), rgba(2, 44, 34, 0.9)), url(${bgCibir})`,
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+          backgroundAttachment: "fixed",
+        }}
+      >
+        <div className="text-center space-y-6 max-w-4xl">
+          <p className="text-emerald-500 font-black uppercase tracking-[0.4em] text-xs animate-header-text" style={{ animationDelay: "0.2s", opacity: 0 }}>
+            Formación Básica Inicial
+          </p>
+          <h1 className="text-5xl lg:text-8xl font-black tracking-tighter animate-header-text" style={{ animationDelay: "0.4s", opacity: 0 }}>
+            PROGRAMA <span className="text-emerald-500 italic">CIBIR</span>
+          </h1>
+          <p className="text-emerald-100/60 text-lg md:text-xl font-light max-w-2xl mx-auto animate-header-text" style={{ animationDelay: "0.6s", opacity: 0 }}>
+            Curso Introductorio a los Bienes Raíces. El estándar de excelencia para nuevos profesionales en el sector.
+          </p>
+        </div>
+      </header>
+
+      <main className="bg-white text-slate-900 rounded-t-[4rem] -mt-12 relative z-10 px-6 lg:px-20 py-24">
+        <div className="max-w-6xl mx-auto">
+          
+          {/* SECCIÓN SOBRE EL PROGRAMA EQUIPARADA AL PADI */}
+          <div className="flex flex-col lg:flex-row items-center gap-12 mb-20 bg-slate-50 p-8 lg:p-16 rounded-[3rem] border border-emerald-50 relative overflow-hidden">
+            <div className="w-full lg:w-1/3 flex justify-center relative z-10">
+              <img src={heroCibir} alt="Capacitación CIBIR" className="w-full h-auto drop-shadow-2xl rounded-2xl" />
+            </div>
+            <div className="w-full lg:w-2/3 space-y-6 relative z-10">
+              <h2 className="text-3xl font-black text-[#022c22] uppercase tracking-tight">Sobre la Formación</h2>
+              <p className="text-slate-600 text-lg leading-relaxed">
+                El CIBIR es nuestro programa insignia presencial, diseñado para cimentar las bases de cualquier carrera inmobiliaria exitosa. Dictado por líderes de la industria, este curso combina teoría rigurosa con la práctica real del mercado venezolano.
+              </p>
+              <div className="flex flex-wrap gap-4 pt-2">
+                <span className="px-5 py-2.5 bg-emerald-100 text-emerald-800 rounded-full text-sm font-bold flex items-center gap-2">
+                    <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
+                    Modalidad Presencial
+                </span>
+                <span className="px-5 py-2.5 bg-emerald-100 text-emerald-800 rounded-full text-sm font-bold flex items-center gap-2">
+                    <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
+                    Aval Gremial
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* GRID DE ACCIÓN DETALLADO (PENSUM + INSCRIPCIÓN) */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-32 items-stretch">
+            <div className="relative rounded-[3rem] overflow-hidden group min-h-[400px]">
+              <img 
+                src="https://images.unsplash.com/photo-1552664730-d307ca884978?q=80&w=2070&auto=format&fit=crop" 
+                alt="Networking" 
+                className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" 
+              />
+              <div className="absolute inset-0 bg-[#022c22]/90 flex flex-col justify-end p-12 text-white">
+                <p className="text-emerald-500 font-black uppercase tracking-widest text-xs mb-3">Contenido Académico</p>
+                <h3 className="text-4xl font-black tracking-tight mb-6">Aprende de los Mejores</h3>
+                <p className="text-emerald-100/80 leading-relaxed mb-8">
+                  Accede a un pensum actualizado que cubre desde la ética profesional hasta las herramientas digitales más potentes del sector.
+                </p>
+                <button 
+                  onClick={() => window.open('/brochure-cibir.pdf', '_blank')} 
+                  className="px-10 py-4 bg-emerald-500 text-[#022c22] rounded-full font-black uppercase text-xs tracking-widest hover:bg-emerald-400 transition-all shadow-xl self-start"
+                >
+                  Descargar Pensum (PDF)
+                </button>
+              </div>
+            </div>
+
+            <div className="relative rounded-[3rem] overflow-hidden flex items-end">
+              <img 
+                src="https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?q=80&w=2070&auto=format&fit=crop" 
+                alt="Inscripción" 
+                className="absolute inset-0 w-full h-full object-cover" 
+              />
+              <div className="relative z-10 w-full p-12 bg-white/95 backdrop-blur-sm m-6 rounded-2xl shadow-2xl space-y-8">
+                <h3 className="text-3xl font-black text-[#022c22] tracking-tight border-b border-emerald-100 pb-4">Proceso de Ingreso</h3>
+                <ul className="space-y-4 text-slate-700 text-lg">
+                  <li className="flex gap-3">
+                    <span className="text-emerald-500 font-bold">01.</span>
+                    <span><strong>Solicitud:</strong> Completa el formulario de contacto o escríbenos.</span>
+                  </li>
+                  <li className="flex gap-3">
+                    <span className="text-emerald-500 font-bold">02.</span>
+                    <span><strong>Requisitos:</strong> Consigna copia de CI y resumen curricular.</span>
+                  </li>
+                  <li className="flex gap-3">
+                    <span className="text-emerald-500 font-bold">03.</span>
+                    <span><strong>Pago:</strong> Formaliza tu inversión para asegurar el cupo.</span>
+                  </li>
+                </ul>
+                <button 
+                  onClick={() => navigate('/contacto')} 
+                  className="w-full py-4 bg-[#022c22] text-white rounded-xl font-black uppercase text-xs tracking-widest hover:bg-slate-800 transition-all shadow-lg"
+                >
+                  Iniciar Preinscripción
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div className="text-center mb-20">
+            <h2 className="text-4xl font-black text-[#022c22] uppercase tracking-tight">Estructura Curricular</h2>
+            <div className="w-20 h-1 bg-emerald-500 mx-auto mt-4" />
+          </div>
+
+          {/* LÍNEA DE TIEMPO DE MÓDULOS */}
+          <div className="relative">
+            <div className="absolute left-1/2 -translate-x-1/2 top-0 bottom-0 w-px bg-slate-200 hidden md:block" />
+            {modulos.map((mod, index) => (
+              <ModuloCibir key={index} index={index} numero={mod.numero} titulo={mod.titulo} descripcion={mod.descripcion} />
+            ))}
+          </div>
+
+          {/* SECCIÓN DE CONTACTO CON MARCAS DE AGUA ANIMADAS */}
+          <div className="relative mt-16 group"> 
+            <div 
+              ref={(el) => setRevealEstudiosa(el)} 
+              className="reveal-on-scroll absolute -bottom-50 -left-150 z-10 pointer-events-none hidden lg:block transition-all duration-1000 opacity-0 [&.active]:opacity-20"
+            >
+              <img src={Estudiosa} alt="Watermark" className="h-[800px] w-auto max-w-none transform" />
+            </div>
+            <div 
+              ref={(el) => setRevealEstudioso(el)} 
+              className="reveal-on-scroll absolute -bottom-40 left-270 z-10 pointer-events-none hidden lg:block transition-all duration-1000 opacity-0 [&.active]:opacity-20"
+            >
+              <img src={Estudioso} alt="Watermark" className="h-[650px] w-auto max-w-none transform" />
+            </div>
+          
+            <div className="relative z-10 p-12 rounded-[4rem] bg-[#022c22]/95 backdrop-blur-sm text-white text-center space-y-8 overflow-hidden border border-white/5">
+              <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/10 rounded-full -mr-32 -mt-32 blur-3xl" />
+              
+              <div className="relative z-10">
+                <h3 className="text-3xl md:text-4xl font-black mb-4 uppercase tracking-tighter">
+                  ¿Quieres convertirte en un Profesional Certificado?
+                </h3>
+                <p className="text-emerald-200/70 mb-8 max-w-xl mx-auto italic">
+                  No pierdas la oportunidad de formarte con los líderes del gremio. La próxima cohorte del CIBIR te está esperando.
+                </p>
+                <div className="flex flex-col md:flex-row gap-4 justify-center">
+                  <button 
+                    onClick={() => navigate('/contacto')}
+                    className="px-10 py-4 bg-emerald-500 text-[#022c22] rounded-full font-black uppercase text-xs tracking-widest hover:bg-emerald-400 transition-all shadow-xl"
+                  >
+                    Solicitar Información Detallada
+                  </button>
+                  <a 
+                    href="https://wa.me/584241554321" 
+                    className="px-10 py-4 border border-emerald-500/50 text-emerald-400 rounded-full font-black uppercase text-xs tracking-widest hover:bg-white/5 transition-all"
+                  >
+                    Consultar por WhatsApp
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+
+      <footer className="bg-[#011a14] px-6 lg:px-20 py-12 pt-16 text-center border-t border-white/5 relative z-10">
+        <p className="text-gray-600 text-[10px] uppercase tracking-[0.2em]">
+          CIBIR • COORDINACIÓN DE FORMACIÓN • CÁMARA INMOBILIARIA • 2026
+        </p>
+      </footer>
+    </div>
+  );
+}

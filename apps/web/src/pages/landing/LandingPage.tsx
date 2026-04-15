@@ -30,8 +30,6 @@ export default function LandingPage() {
     <div className={`${darkMode ? 'dark bg-[#022c22]' : 'bg-slate-50'} min-h-screen transition-colors duration-300`}>
 
       <Navbar
-        darkMode={darkMode}
-        setDarkMode={setDarkMode}
         setIsSesionModalOpen={setIsSesionModalOpen}
         setIsRegisterModalOpen={setIsRegisterModalOpen}
       />
@@ -42,7 +40,6 @@ export default function LandingPage() {
 
       <NosotrosSection />
 
-      <OrigenesSection />
 
       <AfiliadosSection />
 
