@@ -160,6 +160,8 @@ const statements = [
     aprobado_por       INTEGER, -- users.id
     creado_en          TEXT      NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ','now')),
     actualizado_en     TEXT,
+    completado         INTEGER     NOT NULL DEFAULT 0
+                      CHECK (completado IN (0, 1)),
     CONSTRAINT fk_insc_estudiante
       FOREIGN KEY (id_estudiante) REFERENCES estudiantes(id_estudiante)
       ON DELETE RESTRICT ON UPDATE CASCADE,
@@ -191,8 +193,8 @@ const statements = [
     codigo_validacion   TEXT        UNIQUE NOT NULL,
     fecha_emision       TEXT        NOT NULL,
     url_documento       TEXT,
-    CONSTRAINT fk_certificado_inscripcion
-      FOREIGN KEY (id_inscripcion) REFERENCES inscripciones_academicas(id_inscripcion)
+    CONSTRAINT fk_certificado_inscripcion_curso
+      FOREIGN KEY (id_inscripcion) REFERENCES inscripciones_cursos(id_inscripcion)
       ON DELETE RESTRICT ON UPDATE CASCADE
   )`,
 

@@ -22,6 +22,7 @@ import PegiPage            from '@/pages/landing/formacion/PegiPage'
 import PadiPage            from '@/pages/landing/formacion/PadiPage'
 import SetupPasswordPage    from '@/pages/auth/SetupPasswordPage'
 import LobbyPage           from '@/pages/lobby/LobbyPage'
+import ComprobantePublicoPage from '@/pages/comprobante/ComprobantePublicoPage'
 import ScrollToHash        from '@/components/ScrollToHash'
 
 export default function App() {
@@ -43,6 +44,7 @@ export default function App() {
           <Route path='/cibir'         element={<CibirPage />} />
           <Route path='/cibir/verificar' element={<VerificarEmailPage />} />
           <Route path='/directorio'    element={<DirectorioPage />} />
+          <Route path='/comprobante/:codigo' element={<ComprobantePublicoPage />} />
           <Route path='/establecer-contrasena' element={<SetupPasswordPage />} />
 
           {/* Rutas Dinámicas */}

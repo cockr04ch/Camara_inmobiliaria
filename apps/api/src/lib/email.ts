@@ -129,3 +129,50 @@ export const enviarCorreoOlvideContrasena = async (
   if (error) throw new Error(`enviarCorreoOlvideContrasena: ${JSON.stringify(error)}`)
   return data
 }
+
+/**
+ * Comprobante de aprobación digital al completar (graduar) una inscripción.
+ * Mismo criterio que CIBIR (`enviarCorreoVerificacion`): `from`/`to` fijos aptos para Resend en prueba;
+ * el correo del participante va solo en el cuerpo (como el email a confirmar en CIBIR).
+ */
+export const enviarCorreoComprobanteGraduacion = async (params: {
+  nombre: string
+  emailEstudiante: string
+  tituloFormacion: string
+  codigoValidacion: string
+}) => {
+  const { nombre, emailEstudiante, tituloFormacion, codigoValidacion } = params
+  const urlComprobante = `${env.APP_URL.replace(/\/$/, '')}/comprobante/${encodeURIComponent(codigoValidacion)}`
+
+  const { data, error } = await resend.emails.send({
+    from: 'onboarding@resend.dev',
+    to: EMAIL_DEST,
+    subject: `Tu comprobante de aprobación digital — ${tituloFormacion}`,
+    html: `
+      <div style="font-family:sans-serif;max-width:600px;margin:0 auto;color:#333;">
+        <h2 style="color:#166534;">¡Felicitaciones, ${nombre}!</h2>
+        <p>Tu participación en <strong>${tituloFormacion}</strong> ha sido registrada como <strong>completada</strong>.</p>
+        <p>Correo del participante: <em>${emailEstudiante}</em></p>
+        <p>Puedes descargar o compartir el <strong>comprobante de aprobación digital</strong> (con enlace público de verificación) desde:</p>
+        <div style="text-align:center;margin:28px 0;">
+          <a href="${urlComprobante}" style="background-color:#059669;color:white;padding:14px 28px;text-decoration:none;border-radius:8px;font-weight:bold;display:inline-block;">
+            Ver comprobante y exportar PDF
+          </a>
+        </div>
+        <div style="background:#f8fafc;border-radius:8px;padding:14px;margin:20px 0;font-size:13px;color:#334155;">
+          <p style="margin:0 0 6px;"><strong>Código de validación:</strong> <code style="background:#e2e8f0;padding:2px 6px;border-radius:4px;">${codigoValidacion}</code></p>
+          <p style="margin:0;word-break:break-all;"><strong>Enlace público:</strong><br/><a href="${urlComprobante}" style="color:#047857;">${urlComprobante}</a></p>
+        </div>
+        <p style="font-size:14px;color:#666;">O copia: ${urlComprobante}</p>
+        <p style="font-size:12px;color:#64748b;">Cualquier persona puede verificar la autenticidad del comprobante abriendo el enlace anterior.</p>
+        <hr style="border:none;border-top:1px solid #ddd;margin-top:30px;"/>
+        <p style="font-size:12px;color:#999;">Si no aplicaba a tu cuenta, ignora este correo.</p>
+      </div>
+    `,
+  })
+  if (error) {
+    console.error('enviarCorreoComprobanteGraduacion:', error)
+    throw error
+  }
+  return data
+}

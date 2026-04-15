@@ -1,5 +1,6 @@
 import { Request, Response } from 'express'
 import { db } from '../lib/db.js'
+import { emitirComprobanteSiCompleto } from '../lib/certificados.js'
 import { requireAuth, requireRole } from '../middlewares/auth.middleware.js'
 
 const MAIN_PROGRAM_CODES = new Set(['PADI', 'PEGI', 'PREANI', 'CIBIR'])
@@ -739,6 +740,7 @@ export const adminCompletarCursoEstudiante = async (req: Request, res: Response)
       res.status(404).json({ success: false, message: 'Inscripción no encontrada o estudiante no está inscrito' })
       return
     }
+    await emitirComprobanteSiCompleto(id)
     res.json({ success: true, message: 'Estudiante marcado como completado.', data: result.rows[0] })
   } catch (error) {
     console.error('adminCompletarCursoEstudiante:', error)

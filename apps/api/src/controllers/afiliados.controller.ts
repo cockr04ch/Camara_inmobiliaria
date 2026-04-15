@@ -10,6 +10,57 @@ import bcrypt from 'bcryptjs';
  * Obtiene un agremiado por ID. Protegido por auth.
  * Un afiliado solo puede ver sus propios datos; los admins pueden ver cualquiera.
  */
+/**
+ * GET /api/afiliados/me/certificados
+ * Lista comprobantes digitales del agremiado autenticado (vinculación por id_agremiado o email).
+ */
+export const getMisCertificados = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const idAgremiado = req.user!.id_agremiado
+    const userEmail = (req.user!.email ?? '').trim().toLowerCase()
+
+    if (idAgremiado == null && !userEmail) {
+      res.json({ success: true, data: [] })
+      return
+    }
+
+    const result = await db.execute({
+      sql: `
+        SELECT
+          c.id_certificado,
+          c.codigo_validacion,
+          c.fecha_emision,
+          ic.id_inscripcion,
+          ic.programa_codigo,
+          ic.tipo_inscripcion,
+          ic.estatus AS inscripcion_estatus,
+          ic.completado,
+          cu.nombre AS curso_nombre,
+          e.nombre_completo AS estudiante_nombre
+        FROM certificados c
+        JOIN inscripciones_cursos ic ON ic.id_inscripcion = c.id_inscripcion
+        JOIN estudiantes e ON e.id_estudiante = ic.id_estudiante
+        LEFT JOIN cursos cu ON cu.id_curso = ic.id_curso
+        WHERE (
+          (? <> '' AND LOWER(TRIM(e.email)) = ?)
+          OR (? IS NOT NULL AND e.id_agremiado = ?)
+          OR (? IS NOT NULL AND EXISTS (
+            SELECT 1 FROM agremiados ag
+            WHERE ag.id_agremiado = ? AND LOWER(TRIM(ag.email)) = LOWER(TRIM(e.email))
+          ))
+        )
+        ORDER BY c.fecha_emision DESC
+      `,
+      args: [userEmail, userEmail, idAgremiado, idAgremiado, idAgremiado, idAgremiado],
+    })
+
+    res.json({ success: true, data: result.rows })
+  } catch (error) {
+    console.error('getMisCertificados:', error)
+    res.status(500).json({ success: false, message: 'Error al obtener certificados' })
+  }
+}
+
 export const getAfiliadoById = async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params

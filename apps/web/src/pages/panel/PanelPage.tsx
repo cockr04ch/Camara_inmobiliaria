@@ -24,6 +24,7 @@ import WidgetFinanciero from '@/pages/afiliado/components/WidgetFinanciero';
 import WidgetNotificaciones from '@/pages/afiliado/components/WidgetNotificaciones';
 import WidgetAcademico from '@/pages/afiliado/components/WidgetAcademico';
 import WidgetFormalizarInscripcion from '@/pages/afiliado/components/WidgetFormalizarInscripcion';
+import WidgetMisCertificados from '@/pages/afiliado/components/WidgetMisCertificados';
 
 // Componentes Administrativos pre-existentes
 import UsersPanel from '@/pages/admin/components/Users/UsersPanel';
@@ -153,7 +154,13 @@ const PanelPage = () => {
     if (activeTab === 'Mi Expediente') return <Section label="Mi Expediente" />;
     if (activeTab === 'Estado de Cuenta y Solvencias') return <Section label="Estado de Cuenta" />;
     if (activeTab === 'Catálogo Académico') return <div className="col-span-1 lg:col-span-3"><WidgetAcademico limit={0} /></div>;
-    if (activeTab === 'Mis Certificados') return <Section label="Mis Certificados" />;
+    if (activeTab === 'Mis Certificados') {
+      return (
+        <div className="col-span-1 lg:col-span-3">
+          <WidgetMisCertificados />
+        </div>
+      );
+    }
     if (activeTab === 'Sistema de Denuncias') return <Section label="Sistema de Denuncias" />;
 
     // 2. Sección Administrativa
