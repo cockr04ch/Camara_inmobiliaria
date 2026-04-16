@@ -286,7 +286,7 @@ const CibirPanel = ({ onCountsUpdate }: { onCountsUpdate?: (pendientes: number) 
 
 
 // ─── MAIN FORMACION PANEL ─────────────────────────────────────────────────────
-type SubTab = 'cursos' | 'preinscripciones' | 'asignar'
+type SubTab = 'cursos' | 'preinscripciones' | 'afiliaciones' | 'asignar'
 
 const FormacionPanel = () => {
   const { token } = useAuth()
@@ -298,6 +298,7 @@ const FormacionPanel = () => {
   const tabs: { id: SubTab; label: string; badge?: number }[] = [
     { id: 'cursos', label: 'Cursos & Talleres' },
     { id: 'preinscripciones', label: 'Preinscripciones' },
+    { id: 'afiliaciones', label: 'Afiliaciones' },
     { id: 'asignar', label: 'Asignar Estudiante' },
   ]
 
@@ -336,6 +337,7 @@ const FormacionPanel = () => {
       <div className="flex-1 overflow-hidden">
         {activeTab === 'cursos' && <CursosAdminPanel />}
         {activeTab === 'preinscripciones' && <PreinscripcionesPrincipalesPanel />}
+        {activeTab === 'afiliaciones' && <PreinscripcionesPrincipalesPanel initialPrograma="AFILIACION" />}
         {activeTab === 'asignar' && <AsignarEstudiantePanel />}
       </div>
     </div>

@@ -26,6 +26,7 @@ import ComprobantePublicoPage from '@/pages/comprobante/ComprobantePublicoPage'
 import ScrollToHash        from '@/components/ScrollToHash'
 import Convenios from '@/pages/landing/marco-legal/convenios/comerciales'
 import NormativasPage from '@/pages/landing/marco-legal/NormativasPage'
+import RequisitosPage from '@/pages/landing/afiliados/RequisitosPage'
 
 function PreservingQueryNavigate({ to }: { to: string }) {
   const [searchParams] = useSearchParams()
@@ -56,6 +57,7 @@ export default function App() {
           <Route path='/convenios' element={<Convenios />} />
           <Route path='/normativas' element={<NormativasPage />} />
           <Route path='/directorio'    element={<DirectorioPage />} />
+          <Route path='/requisitos'    element={<RequisitosPage />} />
           <Route path='/comprobante/:codigo' element={<ComprobantePublicoPage />} />
           <Route path='/establecer-contrasena' element={<SetupPasswordPage />} />
 

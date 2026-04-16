@@ -92,7 +92,7 @@ const statements = [
     email               TEXT NOT NULL,
     telefono            TEXT,
     programa_codigo     TEXT NOT NULL
-                      CHECK (programa_codigo IN ('PADI','PEGI','PREANI','CIBIR')),
+                      CHECK (programa_codigo IN ('PADI','PEGI','PREANI','CIBIR', 'AFILIACION')),
     nivel_profesional   TEXT NOT NULL
                       CHECK (nivel_profesional IN ('Bachiller','Universitario','Postgrado')),
     es_corredor_inmobiliario INTEGER NOT NULL
@@ -180,7 +180,7 @@ const statements = [
     id_inscripcion     INTEGER     PRIMARY KEY,
     id_estudiante      INTEGER     NOT NULL,
     id_curso           INTEGER, -- si todavía es solo preinscripción por programa, puede ser NULL
-    programa_codigo    TEXT,    -- 'PADI' | 'PEGI' | 'PREANI' | 'CIBIR' (catálogo público)
+    programa_codigo    TEXT,    -- 'PADI' | 'PEGI' | 'PREANI' | 'CIBIR' | 'AFILIACION' (catálogo público)
     tipo_inscripcion   TEXT      NOT NULL DEFAULT 'cohorte'
                       CHECK (tipo_inscripcion IN ('programa','cohorte')),
     estatus            TEXT      NOT NULL DEFAULT 'Preinscrito'

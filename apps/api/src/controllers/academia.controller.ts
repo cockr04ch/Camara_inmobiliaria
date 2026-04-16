@@ -5,7 +5,7 @@ import { emitirComprobanteSiCompleto } from '../lib/certificados.js'
 import { enviarCorreoConfirmacionPreinscripcionPrograma } from '../lib/email.js'
 import { requireAuth, requireRole } from '../middlewares/auth.middleware.js'
 
-const MAIN_PROGRAM_CODES = new Set(['PADI', 'PEGI', 'PREANI', 'CIBIR'])
+const MAIN_PROGRAM_CODES = new Set(['PADI', 'PEGI', 'PREANI', 'CIBIR', 'AFILIACION'])
 const PROFESSIONAL_LEVELS = new Set(['Bachiller', 'Universitario', 'Postgrado'])
 
 function normalizeProgramaCodigo(value: unknown): string | null {
@@ -144,7 +144,7 @@ export const publicPreinscribirProgramaPrincipal = async (req: Request, res: Res
     const esCorredorInmobiliario = normalizeEsCorredorInmobiliario(req.body?.esCorredorInmobiliario)
 
     if (!programaCodigo) {
-      res.status(400).json({ success: false, message: 'programaCodigo inválido. Use PADI/PEGI/PREANI/CIBIR.' })
+      res.status(400).json({ success: false, message: 'programaCodigo inválido. Use PADI/PEGI/PREANI/CIBIR/AFILIACION.' })
       return
     }
     if (!nombreCompleto || !email) {

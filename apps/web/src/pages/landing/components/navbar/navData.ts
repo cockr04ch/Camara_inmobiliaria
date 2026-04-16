@@ -6,9 +6,9 @@ export const NAV_ITEMS = [
     title: 'Nosotros',
     items: [
       { label: 'Misión y Visión', path: '/mision_vision' },
-      { label: 'Propósito', path: '/proposito' },
+      // { label: 'Propósito', path: '/proposito' },
       { label: 'Junta Directiva', path: '/junta_directiva' },
-      { label: 'Historia' , path: '/historia'}
+      { label: 'Historia', path: '/historia' }
     ],
     Tpath: '',
   },
@@ -16,9 +16,9 @@ export const NAV_ITEMS = [
   {
     title: 'Afiliados',
     items: [
-      { label: 'Directorio', path: '/directorio' },
+      { label: 'Miembros', path: '/directorio' },
       { label: 'Beneficios', path: '/beneficios' },
-      { label: 'Requisitos', path: '/requisitos' },
+      { label: 'Afíliate', path: '/requisitos' },
     ],
     Tpath: '',
   },

@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react'
 import { API_URL } from '@/config/env'
 import { useAuth } from '@/context/AuthContext'
 
-type ProgramaCodigo = 'PADI' | 'PEGI' | 'PREANI' | 'CIBIR'
+type ProgramaCodigo = 'PADI' | 'PEGI' | 'PREANI' | 'CIBIR' | 'AFILIACION'
 type Estatus = 'Preinscrito' | 'Inscrito' | 'Rechazado' | 'Cancelado'
 
 type Row = {
@@ -16,9 +16,13 @@ type Row = {
   estudiante_cedula_rif: string | null
 }
 
-export default function PreinscripcionesPrincipalesPanel() {
+export default function PreinscripcionesPrincipalesPanel({
+  initialPrograma = 'Todos'
+}: {
+  initialPrograma?: ProgramaCodigo | 'Todos'
+}) {
   const { token } = useAuth()
-  const [programa, setPrograma] = useState<ProgramaCodigo | 'Todos'>('Todos')
+  const [programa, setPrograma] = useState<ProgramaCodigo | 'Todos'>(initialPrograma)
   type UiEstatus = 'Todos' | 'Pendiente' | 'Aprobado' | 'Rechazado'
   const [uiEstatus, setUiEstatus] = useState<UiEstatus>('Pendiente')
   const [search, setSearch] = useState('')
@@ -132,7 +136,7 @@ export default function PreinscripcionesPrincipalesPanel() {
 
           <div className="flex gap-2">
             <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-hide pb-1">
-              {(['Todos', 'CIBIR', 'PADI', 'PEGI', 'PREANI'] as const).map(p => (
+              {(['Todos', 'AFILIACION', 'CIBIR', 'PADI', 'PEGI', 'PREANI'] as const).map(p => (
                 <button
                   key={p}
                   onClick={() => setPrograma(p)}

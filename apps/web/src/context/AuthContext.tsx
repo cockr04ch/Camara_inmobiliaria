@@ -103,7 +103,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
 
     // Redirección directa si solo tiene 1 rol
-    if (newUser.rol === 'admin' || newUser.rol === 'super_admin') {
+    if (newUser.rol === 'admin') {
       navigate('/admin')
       return
     }
