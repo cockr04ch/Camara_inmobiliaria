@@ -59,7 +59,7 @@ export default function App() {
           <Route path='/marco-legal/:category' element={<MarcoLegalPage />} />
           <Route path='/convenios' element={<Navigate to='/marco-legal/normas-y-procedimientos' replace />} />
           <Route path='/normativas' element={<Navigate to='/marco-legal/leyes-y-decretos' replace />} />
-          <Route path='/directorio'    element={<DirectorioPage />} />
+          <Route path='/miembros'      element={<DirectorioPage />} />
           <Route path='/requisitos'    element={<RequisitosPage />} />
           <Route path='/comprobante/:codigo' element={<ComprobantePublicoPage />} />
           <Route path='/establecer-contrasena' element={<SetupPasswordPage />} />

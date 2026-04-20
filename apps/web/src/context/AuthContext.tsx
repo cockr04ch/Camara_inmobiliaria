@@ -12,6 +12,12 @@ export interface AuthUser {
   rol: UserRole              // rol primario (más alto en jerarquía)
   roles: UserRole[]          // todos los roles del usuario
   id_agremiado: number | null
+  // Datos de perfil vinculados (estudiante)
+  nombre_completo?: string
+  cedula_rif?: string
+  telefono?: string
+  nivel_profesional?: string
+  es_corredor_inmobiliario?: boolean
 }
 
 interface AuthContextValue {
@@ -46,7 +52,13 @@ function normalizeUser(rawUser: any): AuthUser {
       : roles.includes('estudiante')
         ? 'estudiante'
         : 'afiliado'
-  return { ...rawUser, rol, roles }
+
+  return { 
+    ...rawUser, 
+    rol, 
+    roles,
+    es_corredor_inmobiliario: rawUser.es_corredor_inmobiliario === 1 || rawUser.es_corredor_inmobiliario === true
+  }
 }
 
 // ── Provider ──────────────────────────────────────────────────────────────────

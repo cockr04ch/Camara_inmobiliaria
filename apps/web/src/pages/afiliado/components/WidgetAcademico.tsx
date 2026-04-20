@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { GraduationCap, ArrowRight, ChevronRight } from 'lucide-react';
+import { SkeletonCard } from '@/components/Skeleton';
 import DashboardCard from '@/pages/afiliado/components/DashboardCard';
 import { useAuth } from '@/context/AuthContext';
 import { API_URL } from '@/config/env';
@@ -164,7 +165,7 @@ const WidgetAcademico = ({ onViewAll, limit = 4 }: WidgetAcademicoProps) => {
     >
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 py-2 min-h-[12rem]">
         {loading ? (
-          <div className="col-span-full flex items-center justify-center p-10"><span className="text-sm font-semibold text-slate-400">Cargando cursos...</span></div>
+          Array.from({ length: limit > 0 ? limit : 4 }).map((_, i) => <SkeletonCard key={i} />)
         ) : courses.length === 0 ? (
           <div className="col-span-full flex items-center justify-center p-10"><span className="text-sm font-semibold text-slate-400">Pronto se anunciarán nuevos cursos.</span></div>
         ) : (

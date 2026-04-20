@@ -41,7 +41,11 @@ const WidgetSolicitudAfiliacion = () => {
             ctaLabel="Enviar Solicitud de Afiliación"
             initialData={{
               email: user?.email || '',
-              nombreCompleto: user?.email?.split('@')[0] || '' // Fallback if name is missing
+              nombreCompleto: user?.nombre_completo || '',
+              cedulaRif: user?.cedula_rif || '',
+              telefono: user?.telefono || '',
+              nivelProfesional: user?.nivel_profesional || '',
+              esCorredorInmobiliario: user?.es_corredor_inmobiliario
             }}
           />
         </div>

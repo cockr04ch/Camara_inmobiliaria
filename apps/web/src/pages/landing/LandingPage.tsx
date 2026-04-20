@@ -22,8 +22,8 @@ export default function LandingPage() {
 
   return (
     <div className={`${darkMode ? 'dark bg-[#022c22]' : 'bg-slate-50'} transition-colors duration-300`}>
-      <SEO 
-        title="Líderes en el Sector Inmobiliario" 
+      <SEO
+        title="Camara Inmobiliaria de Bolivar"
         description="Página oficial de la Cámara Inmobiliaria del Estado Bolívar (CIBIR). Encuentra las mejores inmobiliarias en Bolívar, profesionales certificados y formación de vanguardia."
         keywords="inmobiliarias en estado bolivar, camara inmobiliaria bolivar, bienes raices puerto ordaz, ciudad bolivar inmobiliaria, cursos inmobiliarios bolivar, cibir"
       />
@@ -50,7 +50,7 @@ export default function LandingPage() {
       <DirectivaSection />
 
       <ConveniosSection />
-      <NoticiasSection /> 
+      <NoticiasSection />
 
       <Footer />
 

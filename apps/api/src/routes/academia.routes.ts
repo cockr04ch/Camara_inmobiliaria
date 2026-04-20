@@ -12,6 +12,7 @@ import {
   adminListPreinscripciones,
   adminRechazarPreinscripcion,
   adminCompletarCursoEstudiante,
+  adminAprobarPreinscripcionDirecta,
   academiaAdminGuards,
 } from '../controllers/academia.controller.js'
 
@@ -46,6 +47,9 @@ router.patch('/inscripciones/:id/agendar-entrevista', adminAgendarEntrevista)
 
 // PATCH /api/academia/inscripciones/:id/finalizar-entrevista
 router.patch('/inscripciones/:id/finalizar-entrevista', adminFinalizarEntrevista)
+
+// PATCH /api/academia/inscripciones/:id/aprobar-directo
+router.patch('/inscripciones/:id/aprobar-directo', adminAprobarPreinscripcionDirecta)
 
 // Mantenemos /aprobar por compatibilidad temporal si es necesario, pero redirigimos a agendar
 router.patch('/inscripciones/:id/aprobar', adminAgendarEntrevista)

@@ -329,31 +329,35 @@ export const publicConfirmarPreinscripcionPrograma = async (req: Request, res: R
     })
 
     // 2. Crear acceso al portal (Usuario + Token)
-    try {
-      const resetToken = randomUUID()
-      const expiracion = new Date()
-      expiracion.setHours(expiracion.getHours() + 48)
-      
-      const placeholderPass = await bcrypt.hash(randomUUID(), 10)
-      
-      await db.execute({
-        sql: `INSERT INTO users (email, password_hash, rol, reset_token, reset_token_expira)
-              VALUES (?, ?, 'estudiante', ?, ?)
-              ON CONFLICT(email) DO UPDATE SET 
-                reset_token = excluded.reset_token, 
-                reset_token_expira = excluded.reset_token_expira`,
-        args: [email, placeholderPass, resetToken, expiracion.toISOString()]
-      })
+    // Solo para cursos académicos (PADI, PEGI, PREANI, CIBIR). 
+    // Para AFILIACION el acceso se crea solo tras aprobación administrativa.
+    if (programaCodigo !== 'AFILIACION') {
+      try {
+        const resetToken = randomUUID()
+        const expiracion = new Date()
+        expiracion.setHours(expiracion.getHours() + 48)
 
-      // 3. Enviar correo para establecer contraseña
-      await enviarCorreoSetPasswordEstudiante({
-        nombre: nombreCompleto,
-        emailOriginal: email,
-        programaCodigo: programaCodigo,
-        token: resetToken
-      })
-    } catch (err) {
-      console.error('Error creando acceso inicial:', err)
+        const placeholderPass = await bcrypt.hash(randomUUID(), 10)
+
+        await db.execute({
+          sql: `INSERT INTO users (email, password_hash, rol, reset_token, reset_token_expira)
+                VALUES (?, ?, 'estudiante', ?, ?)
+                ON CONFLICT(email) DO UPDATE SET 
+                  reset_token = excluded.reset_token, 
+                  reset_token_expira = excluded.reset_token_expira`,
+          args: [email, placeholderPass, resetToken, expiracion.toISOString()]
+        })
+
+        // 3. Enviar correo para establecer contraseña
+        await enviarCorreoSetPasswordEstudiante({
+          nombre: nombreCompleto,
+          emailOriginal: email,
+          programaCodigo: programaCodigo,
+          token: resetToken
+        })
+      } catch (err) {
+        console.error('Error creando acceso inicial:', err)
+      }
     }
 
     // Notificar al admin
@@ -368,8 +372,13 @@ export const publicConfirmarPreinscripcionPrograma = async (req: Request, res: R
 
     res.status(201).json({
       success: true,
-      message: 'Preinscripción confirmada correctamente. Revisa tu correo para establecer tu contraseña.',
-      data: result.rows[0],
+      message: programaCodigo === 'AFILIACION'
+        ? 'Correo confirmado. Tu solicitud de afiliación está siendo revisada por la administración. Pronto nos pondremos en contacto contigo.'
+        : 'Preinscripción confirmada correctamente. Revisa tu correo para establecer tu contraseña.',
+      data: {
+        ...result.rows[0],
+        programa_codigo: programaCodigo
+      },
     })
   } catch (error) {
     console.error('publicConfirmarPreinscripcionPrograma:', error)
@@ -753,7 +762,7 @@ export const adminListPreinscripciones = async (req: Request, res: Response): Pr
       sql: `SELECT ic.estatus, COUNT(*) as c FROM inscripciones_cursos ic WHERE ${baseWhere.join(' AND ')} GROUP BY ic.estatus`,
       args: countArgs,
     })
-    
+
     const counts = { Todos: 0, Pendiente: 0, Entrevista: 0, Aprobado: 0, Rechazado: 0, Cancelado: 0 }
     countsResult.rows.forEach((r: any) => {
       const c = Number(r.c)
@@ -974,7 +983,7 @@ export const adminFinalizarEntrevista = async (req: Request, res: Response): Pro
     }
 
     const now = new Date().toISOString()
-    
+
     // Obtener datos actuales
     const currentRes = await db.execute({
       sql: `SELECT ic.*, e.email, e.nombre_completo 
@@ -983,12 +992,12 @@ export const adminFinalizarEntrevista = async (req: Request, res: Response): Pro
             WHERE ic.id_inscripcion = ?`,
       args: [id]
     })
-    
+
     if (currentRes.rows.length === 0) {
       res.status(404).json({ success: false, message: 'Inscripción no encontrada' })
       return
     }
-    
+
     const row = currentRes.rows[0] as any
 
     if (resultado === 'Rechazado') {
@@ -1030,7 +1039,7 @@ export const adminFinalizarEntrevista = async (req: Request, res: Response): Pro
     // Registrar módulos CIEBO
     if (resultado === 'Aprobado' || (resultado === 'Parcial' && Array.isArray(modulosConvalidados))) {
       const modulos = resultado === 'Aprobado' ? [1, 2, 3, 4, 5] : modulosConvalidados
-      
+
       for (const num of modulos) {
         await db.execute({
           sql: `INSERT INTO convalidaciones_ciebo (id_estudiante, modulo_numero, estatus, registrado_por)
@@ -1048,7 +1057,7 @@ export const adminFinalizarEntrevista = async (req: Request, res: Response): Pro
         args: [row.email]
       })
       const existingUser = userRes.rows[0] as any
-      
+
       let tokenToUse = existingUser?.reset_token
 
       if (!existingUser) {
@@ -1056,7 +1065,7 @@ export const adminFinalizarEntrevista = async (req: Request, res: Response): Pro
         const expiracion = new Date()
         expiracion.setHours(expiracion.getHours() + 48)
         const placeholderPass = await bcrypt.hash(randomUUID(), 10)
-        
+
         await db.execute({
           sql: `INSERT INTO users (email, password_hash, rol, reset_token, reset_token_expira)
                 VALUES (?, ?, 'estudiante', ?, ?)`,
@@ -1084,6 +1093,99 @@ export const adminFinalizarEntrevista = async (req: Request, res: Response): Pro
 }
 
 /**
+ * PATCH /api/academia/inscripciones/:id/aprobar-directo
+ * Aprueba una preinscripción sin pasar por entrevista.
+ * Genera acceso al portal y notifica al estudiante.
+ */
+export const adminAprobarPreinscripcionDirecta = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const id = Number(req.params.id)
+    if (!Number.isFinite(id)) {
+      res.status(400).json({ success: false, message: 'id inválido' })
+      return
+    }
+
+    const now = new Date().toISOString()
+
+    // Obtener datos actuales
+    const currentRes = await db.execute({
+      sql: `SELECT ic.*, e.email, e.nombre_completo 
+            FROM inscripciones_cursos ic
+            JOIN estudiantes e ON e.id_estudiante = ic.id_estudiante
+            WHERE ic.id_inscripcion = ?`,
+      args: [id]
+    })
+
+    if (currentRes.rows.length === 0) {
+      res.status(404).json({ success: false, message: 'Inscripción no encontrada' })
+      return
+    }
+
+    const row = currentRes.rows[0] as any
+
+    if (row.estatus !== 'Preinscrito') {
+      res.status(400).json({ success: false, message: 'La inscripción debe estar en estatus Preinscrito para aprobación directa.' })
+      return
+    }
+
+    // Aprobación Directa
+    await db.execute({
+      sql: `UPDATE inscripciones_cursos 
+            SET estatus='Inscrito', aprobado_por=?, actualizado_en=?
+            WHERE id_inscripcion=?`,
+      args: [req.user?.id || null, now, id]
+    })
+
+    // Si tiene id_curso, descontar cupo
+    if (row.id_curso) {
+      await db.execute({
+        sql: `UPDATE cursos SET cupos_disponibles = cupos_disponibles - 1 WHERE id_curso = ? AND cupos_disponibles > 0`,
+        args: [row.id_curso],
+      })
+    }
+
+    // Crear/Verificar Acceso
+    try {
+      const userRes = await db.execute({
+        sql: `SELECT reset_token FROM users WHERE email = ?`,
+        args: [row.email]
+      })
+      const existingUser = userRes.rows[0] as any
+
+      let tokenToUse = existingUser?.reset_token
+
+      if (!existingUser) {
+        tokenToUse = randomUUID()
+        const expiracion = new Date()
+        expiracion.setHours(expiracion.getHours() + 48)
+        const placeholderPass = await bcrypt.hash(randomUUID(), 10)
+
+        await db.execute({
+          sql: `INSERT INTO users (email, password_hash, rol, reset_token, reset_token_expira)
+                VALUES (?, ?, 'estudiante', ?, ?)`,
+          args: [row.email, placeholderPass, tokenToUse, expiracion.toISOString()]
+        })
+      }
+
+      // Enviar correo de bienvenida con acceso a password
+      await enviarCorreoSetPasswordEstudiante({
+        nombre: row.nombre_completo,
+        emailOriginal: row.email,
+        programaCodigo: row.programa_codigo || 'Curso',
+        token: tokenToUse || randomUUID() // fallback
+      })
+    } catch (err) {
+      console.error('Error preparando acceso directo:', err)
+    }
+
+    res.json({ success: true, message: 'Inscripción aprobada correctamente.' })
+  } catch (error) {
+    console.error('adminAprobarPreinscripcionDirecta:', error)
+    res.status(500).json({ success: false, message: 'Error al aprobar preinscripción' })
+  }
+}
+
+/**
  * PATCH /api/academia/inscripciones/:id/rechazar
  */
 export const adminRechazarPreinscripcion = async (req: Request, res: Response): Promise<void> => {
@@ -1095,11 +1197,11 @@ export const adminRechazarPreinscripcion = async (req: Request, res: Response): 
     }
     const notaAdmin = typeof req.body?.notaAdmin === 'string' ? req.body.notaAdmin.trim() : null
     const now = new Date().toISOString()
-    
+
     // Primero, obtener el estado actual para ver si estaba 'Inscrito' previamente y devolver cupo
     const current = await db.execute({
-        sql: `SELECT estatus, id_curso FROM inscripciones_cursos WHERE id_inscripcion=?`,
-        args: [id]
+      sql: `SELECT estatus, id_curso FROM inscripciones_cursos WHERE id_inscripcion=?`,
+      args: [id]
     });
 
     const result = await db.execute({
@@ -1109,7 +1211,7 @@ export const adminRechazarPreinscripcion = async (req: Request, res: Response): 
             RETURNING *`,
       args: [notaAdmin, req.user?.id ?? null, now, id],
     })
-    
+
     if (result.rows.length === 0) {
       res.status(404).json({ success: false, message: 'Preinscripción no encontrada o ya procesada' })
       return

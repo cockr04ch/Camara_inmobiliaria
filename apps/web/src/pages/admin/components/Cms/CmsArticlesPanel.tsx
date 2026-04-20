@@ -101,6 +101,10 @@ export default function CmsArticlesPanel({ externalTab = 'config' }: { externalT
   const mobileLandingHref =
     externalTab === 'normativas' ? '/normativas' : sectionAnchor ? `/${sectionAnchor}` : '/'
 
+  // Desactivamos el preview para normativas y config según petición del usuario
+  const hasPreview = !['normativas', 'leyes', 'reglamentos', 'normas', 'actas', 'config', 'paginas'].includes(externalTab)
+  const isPreviewActuallyVisible = previewVisible && hasPreview
+
   return (
     <div ref={containerRef} className="flex w-full h-full overflow-hidden bg-white select-none">
 
@@ -108,8 +112,8 @@ export default function CmsArticlesPanel({ externalTab = 'config' }: { externalT
       <div
         className="flex flex-col overflow-hidden flex-shrink-0 max-lg:!w-full max-lg:!flex-1"
         style={{
-          width: previewVisible ? leftWidth : undefined,
-          flex: previewVisible ? 'none' : '1 1 0%',
+          width: isPreviewActuallyVisible ? leftWidth : undefined,
+          flex: isPreviewActuallyVisible ? 'none' : '1 1 0%',
           transition: dividerDragging ? 'none' : 'width 0.26s cubic-bezier(0.4,0,0.2,1)',
         }}
       >
@@ -135,7 +139,7 @@ export default function CmsArticlesPanel({ externalTab = 'config' }: { externalT
             )}
           </div>
           {/* Show-preview button when hidden */}
-          {!previewVisible && (
+          {!isPreviewActuallyVisible && hasPreview && (
             <button
               onClick={() => setPreviewVisible(true)}
               className="hidden lg:flex items-center gap-1.5 px-3 py-1 rounded-lg text-[11px] font-semibold text-emerald-600 bg-emerald-50 hover:bg-emerald-100 transition-all"
@@ -162,7 +166,7 @@ export default function CmsArticlesPanel({ externalTab = 'config' }: { externalT
       </div>
 
       {/* ── DIVIDER (drag handle) ─────────────────────────────────────────── */}
-      {previewVisible && (
+      {isPreviewActuallyVisible && (
         <div
           onMouseDown={onDividerMouseDown}
           className="hidden lg:flex flex-shrink-0 w-1.5 cursor-col-resize items-center justify-center bg-gray-200 hover:bg-[#00D084] transition-colors duration-150 z-10"
@@ -173,15 +177,17 @@ export default function CmsArticlesPanel({ externalTab = 'config' }: { externalT
       )}
 
       {/* ── RIGHT: landing preview ────────────────────────────────────────── */}
-      <div className={`hidden lg:flex flex-col overflow-hidden ${previewVisible ? 'flex-1' : 'w-0'}`}>
-        <LandingPreviewPane
-          visible={previewVisible}
-          onToggle={() => setPreviewVisible(v => !v)}
-          sectionAnchor={sectionAnchor}
-          iframeSrc={previewIframeSrc}
-          openInTabHref={previewOpenTabHref}
-        />
-      </div>
+      {hasPreview && (
+        <div className={`hidden lg:flex flex-col overflow-hidden ${previewVisible ? 'flex-1' : 'w-0'}`}>
+          <LandingPreviewPane
+            visible={previewVisible}
+            onToggle={() => setPreviewVisible(v => !v)}
+            sectionAnchor={sectionAnchor}
+            iframeSrc={previewIframeSrc}
+            openInTabHref={previewOpenTabHref}
+          />
+        </div>
+      )}
 
       {/* Mobile: open in new tab */}
       <div className="lg:hidden fixed bottom-4 right-4 z-50">

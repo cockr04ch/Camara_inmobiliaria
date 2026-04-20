@@ -34,10 +34,20 @@ const statements = [
   `CREATE TABLE IF NOT EXISTS agremiados (
     id_agremiado                INTEGER     PRIMARY KEY,
     codigo_cibir                TEXT        UNIQUE,
+    tipo_afiliado               TEXT        NOT NULL DEFAULT 'Natural'
+                                CHECK (tipo_afiliado IN ('Natural', 'Juridico')),
+    razon_social                TEXT,
     cedula_rif                  TEXT        UNIQUE NOT NULL,
+    nombres                     TEXT,
+    apellidos                   TEXT,
     nombre_completo             TEXT        NOT NULL,
+    cedula_personal             TEXT,
     email                       TEXT        UNIQUE NOT NULL,
+    direccion                   TEXT,
     telefono                    TEXT,
+    fecha_nacimiento            TEXT,
+    nivel_academico             TEXT,
+    notas                       TEXT,
     estatus                     TEXT        NOT NULL DEFAULT '1_SOLICITUD'
                                 CHECK (estatus IN (
                                   '1_SOLICITUD','2_REQUISITOS','3_CONFIRMACION',
@@ -117,8 +127,8 @@ const statements = [
     id            INTEGER  PRIMARY KEY,
     email         TEXT     NOT NULL UNIQUE,
     password_hash TEXT     NOT NULL,
-    roles         TEXT     NOT NULL DEFAULT '["afiliado"]',
-    rol           TEXT     NOT NULL DEFAULT 'afiliado', -- deprecado pero mantenido temporalmente si hay codigo viejo
+    rol           TEXT     NOT NULL DEFAULT 'estudiante',
+    roles         TEXT     NOT NULL DEFAULT '["estudiante"]',
     id_agremiado  INTEGER  REFERENCES agremiados(id_agremiado) ON DELETE SET NULL,
     activo        INTEGER  NOT NULL DEFAULT 1
                   CHECK (activo IN (0, 1)),
@@ -618,7 +628,45 @@ async function migrateLegacyColumns(): Promise<void> {
       await db.execute(`ALTER TABLE agremiados ADD COLUMN cibir_convalidado INTEGER NOT NULL DEFAULT 0`)
       console.log('  · migrate: agremiados.cibir_convalidado')
     }
-    
+
+    // Nuevas columnas basadas en el formato extendido
+    if (!cols.has('razon_social')) {
+      await db.execute(`ALTER TABLE agremiados ADD COLUMN razon_social TEXT`)
+      console.log('  · migrate: agremiados.razon_social')
+    }
+    if (!cols.has('nombres')) {
+      await db.execute(`ALTER TABLE agremiados ADD COLUMN nombres TEXT`)
+      console.log('  · migrate: agremiados.nombres')
+    }
+    if (!cols.has('apellidos')) {
+      await db.execute(`ALTER TABLE agremiados ADD COLUMN apellidos TEXT`)
+      console.log('  · migrate: agremiados.apellidos')
+    }
+    if (!cols.has('cedula_personal')) {
+      await db.execute(`ALTER TABLE agremiados ADD COLUMN cedula_personal TEXT`)
+      console.log('  · migrate: agremiados.cedula_personal')
+    }
+    if (!cols.has('direccion')) {
+      await db.execute(`ALTER TABLE agremiados ADD COLUMN direccion TEXT`)
+      console.log('  · migrate: agremiados.direccion')
+    }
+    if (!cols.has('fecha_nacimiento')) {
+      await db.execute(`ALTER TABLE agremiados ADD COLUMN fecha_nacimiento TEXT`)
+      console.log('  · migrate: agremiados.fecha_nacimiento')
+    }
+    if (!cols.has('nivel_academico')) {
+      await db.execute(`ALTER TABLE agremiados ADD COLUMN nivel_academico TEXT`)
+      console.log('  · migrate: agremiados.nivel_academico')
+    }
+    if (!cols.has('notas')) {
+      await db.execute(`ALTER TABLE agremiados ADD COLUMN notas TEXT`)
+      console.log('  · migrate: agremiados.notas')
+    }
+    if (!cols.has('tipo_afiliado')) {
+      await db.execute(`ALTER TABLE agremiados ADD COLUMN tipo_afiliado TEXT NOT NULL DEFAULT 'Natural'`)
+      console.log('  · migrate: agremiados.tipo_afiliado')
+    }
+
     // Migración de estados de agremiados
     await migrateAgremiadosEstatusCheck()
   }
@@ -632,14 +680,14 @@ async function migrateLegacyColumns(): Promise<void> {
 async function migrateInscripcionesEstatusCheck() {
   const res = await db.execute("SELECT sql FROM sqlite_master WHERE type='table' AND name='inscripciones_cursos'")
   if (res.rows.length === 0) return
-  
+
   const sql = res.rows[0].sql as string
   if (sql.includes("'Entrevista'")) return
 
   console.log('  · migrate: Actualizando CHECK constraint de inscripciones_cursos (recreando tabla)...')
 
   await db.execute('PRAGMA foreign_keys = OFF')
-  
+
   try {
     // 1. Renombrar
     await db.execute('ALTER TABLE inscripciones_cursos RENAME TO inscripciones_cursos_old')
@@ -663,8 +711,8 @@ async function migrateInscripcionesEstatusCheck() {
     `)
 
     // 4. Recrear índices asociados
-    const tableIndexes = statements.filter(s => 
-      (s.includes('CREATE INDEX') || s.includes('CREATE UNIQUE INDEX')) && 
+    const tableIndexes = statements.filter(s =>
+      (s.includes('CREATE INDEX') || s.includes('CREATE UNIQUE INDEX')) &&
       s.includes('ON inscripciones_cursos')
     )
     for (const idx of tableIndexes) {
@@ -673,7 +721,7 @@ async function migrateInscripcionesEstatusCheck() {
 
     // 5. Borrar tabla vieja
     await db.execute('DROP TABLE inscripciones_cursos_old')
-    
+
     console.log('  · migrate: inscripciones_cursos actualizada exitosamente.')
   } catch (err) {
     console.error('Error en migración de CHECK constraint:', err)
@@ -691,14 +739,14 @@ async function migrateInscripcionesEstatusCheck() {
 async function migrateAgremiadosEstatusCheck() {
   const res = await db.execute("SELECT sql FROM sqlite_master WHERE type='table' AND name='agremiados'")
   if (res.rows.length === 0) return
-  
+
   const sql = res.rows[0].sql as string
   if (sql.includes("'1_SOLICITUD'")) return
 
   console.log('  · migrate: Actualizando CHECK constraint de agremiados (recreando tabla)...')
 
   await db.execute('PRAGMA foreign_keys = OFF')
-  
+
   try {
     // 1. Renombrar
     await db.execute('ALTER TABLE agremiados RENAME TO agremiados_old')
@@ -721,21 +769,21 @@ async function migrateAgremiadosEstatusCheck() {
       INSERT INTO agremiados (${colsStr})
       SELECT 
         ${commonCols.map(c => {
-          if (c === 'estatus') {
-            return `CASE 
+      if (c === 'estatus') {
+        return `CASE 
               WHEN estatus = 'Preinscrito' THEN '1_SOLICITUD'
               WHEN estatus = 'CIBIR' THEN '9_AFILIACION'
               ELSE estatus 
             END`
-          }
-          return c
-        }).join(', ')}
+      }
+      return c
+    }).join(', ')}
       FROM agremiados_old
     `)
 
     // 5. Recrear índices asociados
-    const tableIndexes = statements.filter(s => 
-      (s.includes('CREATE INDEX') || s.includes('CREATE UNIQUE INDEX')) && 
+    const tableIndexes = statements.filter(s =>
+      (s.includes('CREATE INDEX') || s.includes('CREATE UNIQUE INDEX')) &&
       s.includes('ON agremiados')
     )
     for (const idx of tableIndexes) {
@@ -744,7 +792,7 @@ async function migrateAgremiadosEstatusCheck() {
 
     // 6. Borrar tabla vieja
     await db.execute('DROP TABLE agremiados_old')
-    
+
     console.log('  · migrate: agremiados actualizada exitosamente.')
   } catch (err) {
     console.error('Error en migración de agremiados:', err)

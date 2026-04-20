@@ -144,6 +144,20 @@ export default function PreinscripcionesPrincipalesPanel({
     }
   }
 
+  const aprobarDirecto = async (id: number) => {
+    try {
+      const res = await fetch(`${API_URL}/api/academia/inscripciones/${id}/aprobar-directo`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', ...authHeaders },
+      })
+      const json = await res.json()
+      if (!res.ok || !json.success) throw new Error(json.message || 'No se pudo aprobar')
+      await fetchData()
+    } catch (e: any) {
+      setError(e.message)
+    }
+  }
+
   const rechazar = async (id: number) => {
     try {
       const res = await fetch(`${API_URL}/api/academia/inscripciones/${id}/rechazar`, {
@@ -317,12 +331,21 @@ export default function PreinscripcionesPrincipalesPanel({
               <div className="bg-white rounded-2xl p-4 border border-gray-100 flex flex-col gap-2">
               {selected.estatus === 'Preinscrito' && (
                 <div className="flex gap-2">
-                  <button
-                    onClick={() => setShowModalAgendar(true)}
-                    className="flex-1 py-2.5 rounded-xl bg-[#00D084] text-white text-sm font-semibold hover:bg-[#00B870] transition-colors"
-                  >
-                    Agendar Entrevista
-                  </button>
+                  {['AFILIACION', 'PEGI'].includes(selected.programa_codigo) ? (
+                    <button
+                      onClick={() => setShowModalAgendar(true)}
+                      className="flex-1 py-2.5 rounded-xl bg-[#00D084] text-white text-sm font-semibold hover:bg-[#00B870] transition-colors"
+                    >
+                      Agendar Entrevista
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => aprobarDirecto(selected.id_inscripcion)}
+                      className="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 text-white text-sm font-bold shadow-lg shadow-emerald-600/20 hover:scale-[1.02] active:scale-[0.98] transition-all"
+                    >
+                      Aprobar Preinscripción
+                    </button>
+                  )}
                   <button
                     onClick={() => rechazar(selected.id_inscripcion)}
                     className="flex-1 py-2.5 rounded-xl bg-red-50 text-red-500 text-sm font-semibold hover:bg-red-100 transition-colors"
@@ -368,57 +391,64 @@ export default function PreinscripcionesPrincipalesPanel({
           </div>
         )}
       </div>
+
       {/* Modal Agendar Entrevista */}
       {showModalAgendar && selected && (
-        <div className="absolute inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
-          <div className="bg-white w-full max-w-md rounded-3xl shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
-            <div className="bg-[#00D084] p-6 text-white relative">
-              <h3 className="text-xl font-bold">Agendar Entrevista</h3>
-              <p className="text-white/80 text-sm mt-1">Programa: {selected.programa_codigo}</p>
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/40 backdrop-blur-[8px] p-4">
+          <div className="bg-white w-full max-w-md rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.15)] overflow-hidden animate-in fade-in zoom-in duration-300">
+            <div className="relative p-8 bg-gradient-to-br from-emerald-600 to-teal-700 text-white overflow-hidden">
+              <div className="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 bg-white/10 rounded-full blur-3xl pointer-events-none" />
+              <div className="relative z-10">
+                <h3 className="text-2xl font-black tracking-tight">Agendar Entrevista</h3>
+                <p className="text-emerald-100/80 text-sm mt-1 font-medium">Programa Académico: {selected.programa_codigo}</p>
+              </div>
               <button
                 onClick={() => setShowModalAgendar(false)}
-                className="absolute top-6 right-6 p-2 hover:bg-white/20 rounded-full transition-colors"
+                className="absolute top-8 right-8 z-50 p-2.5 bg-white/10 hover:bg-white/20 rounded-full transition-all duration-300 backdrop-blur-md border border-white/10 group"
               >
-                <svg viewBox="0 0 24 24" className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M18 6L6 18M6 6l12 12" /></svg>
+                <svg viewBox="0 0 24 24" className="w-5 h-5 group-hover:rotate-90 transition-transform duration-500" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M18 6L6 18M6 6l12 12" /></svg>
               </button>
             </div>
-            <div className="p-6 flex flex-col gap-5">
-              <div className="flex flex-col gap-1.5">
-                <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider ml-1">Fecha de Entrevista</label>
+
+            <div className="p-8 flex flex-col gap-6">
+              <div className="flex flex-col gap-2 group">
+                <label className="text-[10px] font-black text-emerald-600/60 uppercase tracking-[0.2em] ml-1 group-focus-within:text-emerald-600 transition-colors">Fecha de Entrevista</label>
                 <input
                   type="date"
                   value={entrevista.fecha}
                   onChange={e => setEntrevista({ ...entrevista, fecha: e.target.value })}
-                  className="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 text-sm focus:bg-white focus:ring-2 focus:ring-[#00D084]/20 focus:border-[#00D084] outline-none transition-all"
+                  className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-5 py-4 text-sm font-semibold focus:bg-white focus:ring-4 focus:ring-emerald-500/5 focus:border-emerald-500 outline-none transition-all shadow-sm"
                 />
               </div>
-              <div className="flex flex-col gap-1.5">
-                <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider ml-1">Hora</label>
+
+              <div className="flex flex-col gap-2 group">
+                <label className="text-[10px] font-black text-emerald-600/60 uppercase tracking-[0.2em] ml-1 group-focus-within:text-emerald-600 transition-colors">Hora de la Cita</label>
                 <input
                   type="time"
                   value={entrevista.hora}
                   onChange={e => setEntrevista({ ...entrevista, hora: e.target.value })}
-                  className="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 text-sm focus:bg-white focus:ring-2 focus:ring-[#00D084]/20 focus:border-[#00D084] outline-none transition-all"
+                  className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-5 py-4 text-sm font-semibold focus:bg-white focus:ring-4 focus:ring-emerald-500/5 focus:border-emerald-500 outline-none transition-all shadow-sm"
                 />
               </div>
-              <div className="flex flex-col gap-1.5">
-                <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider ml-1">Lugar</label>
+
+              <div className="flex flex-col gap-2 group">
+                <label className="text-[10px] font-black text-emerald-600/60 uppercase tracking-[0.2em] ml-1 group-focus-within:text-emerald-600 transition-colors">Lugar / Plataforma</label>
                 <input
                   type="text"
                   value={entrevista.lugar}
                   onChange={e => setEntrevista({ ...entrevista, lugar: e.target.value })}
-                  placeholder="Ej: Sede Cámara Inmobiliaria"
-                  className="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 text-sm focus:bg-white focus:ring-2 focus:ring-[#00D084]/20 focus:border-[#00D084] outline-none transition-all"
+                  placeholder="Ej: Sede Cámara Inmobiliaria o Google Meet"
+                  className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-5 py-4 text-sm font-semibold focus:bg-white focus:ring-4 focus:ring-emerald-500/5 focus:border-emerald-500 outline-none transition-all shadow-sm"
                 />
               </div>
 
-              <div className="pt-2 flex flex-col gap-3">
+              <div className="pt-4 flex flex-col gap-3">
                 <button
                   onClick={agendarEntrevista}
                   disabled={!entrevista.fecha || !entrevista.hora || !entrevista.lugar}
-                  className="w-full py-4 rounded-2xl bg-[#00D084] text-white font-bold shadow-lg shadow-[#00D084]/20 hover:bg-[#00B870] hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 disabled:pointer-events-none"
+                  className="w-full py-4.5 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 text-white text-base font-bold shadow-[0_10px_25px_-5px_rgba(5,150,105,0.4)] hover:shadow-[0_15px_30px_-5px_rgba(5,150,105,0.5)] hover:-translate-y-0.5 active:translate-y-0 transition-all disabled:opacity-50 disabled:pointer-events-none uppercase tracking-widest text-xs"
                 >
-                  Confirmar Cita
+                  Confirmar Programación
                 </button>
               </div>
             </div>
@@ -428,31 +458,35 @@ export default function PreinscripcionesPrincipalesPanel({
 
       {/* Modal Finalizar Entrevista */}
       {showModalFinalizar && selected && (
-        <div className="absolute inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
-          <div className="bg-white w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
-            <div className="bg-[#00D084] p-6 text-white relative">
-              <h3 className="text-xl font-bold">Veredicto de la Entrevista</h3>
-              <p className="text-white/80 text-sm mt-1">{selected.estudiante_nombre}</p>
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/40 backdrop-blur-[8px] p-4">
+          <div className="bg-white w-full max-w-xl rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.15)] overflow-hidden animate-in fade-in zoom-in duration-300">
+            <div className="relative p-8 bg-gradient-to-br from-slate-800 to-slate-900 text-white overflow-hidden">
+              <div className="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
+              <div className="relative z-10">
+                <h3 className="text-2xl font-black tracking-tight">Veredicto Final</h3>
+                <p className="text-slate-400 text-sm mt-1 font-medium">Aspirante: <span className="text-white font-bold">{selected.estudiante_nombre}</span></p>
+              </div>
               <button
                 onClick={() => setShowModalFinalizar(false)}
-                className="absolute top-6 right-6 p-2 hover:bg-white/20 rounded-full transition-colors"
+                className="absolute top-8 right-8 z-50 p-2.5 bg-white/5 hover:bg-white/10 rounded-full transition-all duration-300 backdrop-blur-md border border-white/5 group"
               >
-                <svg viewBox="0 0 24 24" className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M18 6L6 18M6 6l12 12" /></svg>
+                <svg viewBox="0 0 24 24" className="w-5 h-5 group-hover:rotate-90 transition-transform duration-500" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M18 6L6 18M6 6l12 12" /></svg>
               </button>
             </div>
-            <div className="p-6 flex flex-col gap-5">
-              <div className="flex flex-col gap-2">
-                <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider ml-1">Resultado Final</label>
-                <div className="grid grid-cols-3 gap-2">
+
+            <div className="p-8 flex flex-col gap-6">
+              <div className="flex flex-col gap-3">
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Resultado de Admisión</label>
+                <div className="grid grid-cols-3 gap-3">
                   {(['Aprobado', 'Parcial', 'Rechazado'] as const).map(res => (
                     <button
                       key={res}
                       onClick={() => setFinalizarData({ ...finalizarData, resultado: res, modulos: res === 'Aprobado' ? [1, 2, 3, 4, 5] : finalizarData.modulos })}
                       className={[
-                        'py-2 px-3 rounded-xl text-xs font-bold border transition-all',
+                        'py-3.5 px-4 rounded-2xl text-xs font-bold border transition-all duration-300',
                         finalizarData.resultado === res
-                          ? 'bg-[#00D084] border-[#00D084] text-white shadow-md'
-                          : 'bg-white border-gray-200 text-slate-500 hover:bg-gray-50'
+                          ? 'bg-emerald-600 border-emerald-600 text-white shadow-lg shadow-emerald-600/20'
+                          : 'bg-white border-slate-100 text-slate-500 hover:border-emerald-200'
                       ].join(' ')}
                     >
                       {res === 'Parcial' ? 'Parcial (CIEBO)' : res}
@@ -462,12 +496,15 @@ export default function PreinscripcionesPrincipalesPanel({
               </div>
 
               {finalizarData.resultado === 'Parcial' && (
-                <div className="bg-gray-50 rounded-2xl p-4 border border-gray-100 flex flex-col gap-3">
+                <div className="bg-emerald-50/30 rounded-[2rem] p-6 border border-emerald-100/50 flex flex-col gap-4 animate-in slide-in-from-top-2 duration-500">
                   <div className="flex items-center justify-between">
-                    <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Módulos Convalidados (CIEBO)</label>
-                    <span className="text-[10px] font-bold bg-emerald-100 text-[#00D084] px-2 py-0.5 rounded-full">{finalizarData.modulos.length}/5</span>
+                    <div className="flex flex-col">
+                      <label className="text-[10px] font-black text-emerald-800/60 uppercase tracking-[0.2em]">Módulos Convalidados</label>
+                      <p className="text-[10px] text-emerald-600/60 font-medium">Marca los módulos ya cursados</p>
+                    </div>
+                    <span className="text-[11px] font-black bg-emerald-600 text-white px-3 py-1 rounded-full">{finalizarData.modulos.length} / 5</span>
                   </div>
-                  <div className="grid grid-cols-5 gap-2">
+                  <div className="grid grid-cols-5 gap-2.5">
                     {[1, 2, 3, 4, 5].map(m => {
                       const active = finalizarData.modulos.includes(m)
                       return (
@@ -478,36 +515,37 @@ export default function PreinscripcionesPrincipalesPanel({
                             setFinalizarData({ ...finalizarData, modulos: next })
                           }}
                           className={[
-                            'h-12 rounded-xl border flex flex-col items-center justify-center transition-all',
-                            active ? 'bg-white border-[#00D084] text-[#00D084] shadow-sm' : 'bg-gray-100 border-transparent text-slate-400 opacity-60'
+                            'h-14 rounded-2xl border-2 flex flex-col items-center justify-center transition-all duration-300',
+                            active 
+                              ? 'bg-white border-emerald-600 text-emerald-600 shadow-sm' 
+                              : 'bg-white/50 border-slate-100 text-slate-400 opacity-60'
                           ].join(' ')}
                         >
-                          <span className="text-[10px] font-bold">M{m}</span>
-                          <div className={['w-1.5 h-1.5 rounded-full mt-1', active ? 'bg-[#00D084]' : 'bg-slate-300'].join(' ')} />
+                          <span className="text-[11px] font-black">M{m}</span>
+                          <div className={['w-1.5 h-1.5 rounded-full mt-1.5 transition-all duration-300', active ? 'bg-emerald-600 scale-125' : 'bg-slate-200'].join(' ')} />
                         </button>
                       )
                     })}
                   </div>
-                  <p className="text-[10px] text-slate-400 italic">Marca los módulos que el aspirante ya conoce o ha convalidado por experiencia.</p>
                 </div>
               )}
 
-              <div className="flex flex-col gap-1.5">
-                <label className="text-[11px] font-bold text-slate-400 uppercase tracking-wider ml-1">Nota Administrativa (Opcional)</label>
+              <div className="flex flex-col gap-2 group">
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 group-focus-within:text-emerald-600 transition-colors">Nota Administrativa (Opcional)</label>
                 <textarea
                   value={finalizarData.nota}
                   onChange={e => setFinalizarData({ ...finalizarData, nota: e.target.value })}
-                  placeholder="Observaciones de la entrevista..."
-                  className="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 text-sm focus:bg-white focus:ring-2 focus:ring-[#00D084]/20 focus:border-[#00D084] outline-none transition-all h-20 resize-none"
+                  placeholder="Añade observaciones internas sobre el perfil del aspirante..."
+                  className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-5 py-4 text-sm font-medium focus:bg-white focus:ring-4 focus:ring-emerald-500/5 focus:border-emerald-500 outline-none transition-all h-24 resize-none"
                 />
               </div>
 
               <div className="pt-2">
                 <button
                   onClick={finalizarEntrevista}
-                  className="w-full py-4 rounded-2xl bg-[#00D084] text-white font-bold shadow-lg shadow-[#00D084]/20 hover:bg-[#00B870] hover:scale-[1.02] active:scale-[0.98] transition-all"
+                  className="w-full py-4.5 rounded-2xl bg-slate-900 text-white text-xs font-black shadow-xl shadow-slate-900/10 hover:bg-slate-800 hover:-translate-y-0.5 active:translate-y-0 transition-all uppercase tracking-[0.2em]"
                 >
-                  Finalizar Proceso
+                  Finalizar Proceso y Notificar
                 </button>
               </div>
             </div>

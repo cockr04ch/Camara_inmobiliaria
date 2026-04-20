@@ -99,11 +99,29 @@ export const BtnSecondary = ({ onClick, children }: BtnProps) => (
   </button>
 )
 
-export const Loading = () => (
-  <div className="flex items-center justify-center h-32 text-xs text-slate-400 font-semibold uppercase tracking-widest animate-pulse">
-    Cargando...
+import { Skeleton, SkeletonList, SkeletonCard } from '@/components/Skeleton'
+
+export const SkeletonDetail = () => (
+  <div className="flex flex-col gap-6 bg-white rounded-3xl p-6 border border-gray-100 shadow-xs animate-pulse">
+    <div className="flex items-center justify-between">
+       <div className="flex items-center gap-3 w-full">
+         <Skeleton className="w-12 h-12 rounded-full" />
+         <div className="flex flex-col gap-2 flex-1">
+           <Skeleton className="h-5 w-1/2" />
+           <Skeleton className="h-3 w-1/4" />
+         </div>
+       </div>
+    </div>
+    <Skeleton className="w-full h-32 rounded-2xl" />
+    <div className="space-y-3">
+      <Skeleton className="h-3 w-full" />
+      <Skeleton className="h-3 w-full" />
+      <Skeleton className="h-3 w-2/3" />
+    </div>
   </div>
 )
+
+export const Loading = () => <SkeletonList />
 
 // ── Resize constants ───────────────────────────────────────────────────────────
 const LIST_MIN     = 200

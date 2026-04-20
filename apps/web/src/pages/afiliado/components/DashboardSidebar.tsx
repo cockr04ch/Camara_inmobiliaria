@@ -239,7 +239,7 @@ const DashboardSidebar = ({
 
         <button
           onClick={() => setIsCollapsed(!isCollapsed)}
-          className="absolute -right-3 top-20 z-10 flex items-center justify-center w-6 h-6 rounded-full border border-white/20 text-white/60 shadow-md transition-all duration-150 hover:text-white"
+          className="absolute right-2 top-20 z-10 flex items-center justify-center w-6 h-6 rounded-full border border-white/20 text-white/60 shadow-md transition-all duration-150 hover:text-white"
           style={{ backgroundColor: 'var(--color-primary)' }}
           onMouseEnter={(e) => {
             (e.currentTarget as HTMLButtonElement).style.backgroundColor = 'var(--color-accent)';

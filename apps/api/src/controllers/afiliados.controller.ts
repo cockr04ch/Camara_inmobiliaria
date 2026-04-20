@@ -100,13 +100,26 @@ export const getAfiliadoById = async (req: Request, res: Response): Promise<void
 
 export const registerAfiliado = async (req: Request, res: Response) => {
   try {
-    const { nombreCompleto, email, cedulaRif, telefono } = req.body;
+    const { 
+      nombreCompleto, 
+      email, 
+      cedulaRif, 
+      telefono,
+      razonSocial,
+      nombres,
+      apellidos,
+      cedulaPersonal,
+      direccion,
+      fechaNacimiento,
+      nivelAcademico,
+      notas
+    } = req.body;
 
     // Validación básica
     if (!nombreCompleto || !email || !cedulaRif || !telefono) {
       return res.status(400).json({ 
         success: false, 
-        message: 'Todos los campos son requeridos (nombreCompleto, email, cedulaRif, telefono)' 
+        message: 'Los campos básicos son requeridos (nombreCompleto, email, cedulaRif, telefono)' 
       });
     }
 
@@ -154,6 +167,10 @@ export const registerAfiliado = async (req: Request, res: Response) => {
             ) VALUES (?, ?, ?, ?, ?, ?)`,
       args: [token, nombreCompleto, cedulaRif, email, telefono, fechaExpiracionStr]
     });
+
+    // NOTA: Para no romper el esquema de verificaciones_email (que es temporal), 
+    // podríamos guardar el resto en una tabla meta o simplemente permitir que se completen después.
+    // Por ahora, asumiremos que los campos extra se guardan si existen en req.body para el paso final.
 
     // 4. Enviar email con Resend
     await enviarCorreoVerificacion(nombreCompleto, email, token);
@@ -650,5 +667,52 @@ export const updateEstatusAfiliado = async (req: Request, res: Response) => {
   } catch (error) {
     console.error('Error en updateEstatusAfiliado:', error);
     return res.status(500).json({ success: false, message: 'Error al actualizar estado' });
+  }
+};
+export const updateAfiliado = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const fields = req.body;
+
+    const allowedFields = [
+      'nombre_completo', 'nombres', 'apellidos', 'cedula_rif', 
+      'cedula_personal', 'email', 'telefono', 'razon_social',
+      'direccion', 'fecha_nacimiento', 'nivel_academico', 'notas',
+      'estatus', 'cibir_convalidado', 'inscripcion_pagada', 'tipo_afiliado'
+    ];
+
+    const setParts: string[] = [];
+    const args: any[] = [];
+
+    Object.keys(fields).forEach(key => {
+      if (allowedFields.includes(key)) {
+        setParts.push(`${key} = ?`);
+        args.push(fields[key]);
+      }
+    });
+
+    if (setParts.length === 0) {
+      return res.status(400).json({ success: false, message: 'Nada que actualizar o campos no permitidos' });
+    }
+
+    // Siempre actualizar fecha de cambio si hay cambios
+    setParts.push('fecha_ultimo_cambio_estatus = ?');
+    args.push(new Date().toISOString());
+
+    args.push(Number(id));
+
+    const result = await db.execute({
+      sql: `UPDATE agremiados SET ${setParts.join(', ')} WHERE id_agremiado = ? RETURNING *`,
+      args
+    });
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ success: false, message: 'Agremiado no encontrado' });
+    }
+
+    return res.json({ success: true, data: result.rows[0] });
+  } catch (error) {
+    console.error('Error en updateAfiliado:', error);
+    return res.status(500).json({ success: false, message: 'Error al actualizar afiliado' });
   }
 };

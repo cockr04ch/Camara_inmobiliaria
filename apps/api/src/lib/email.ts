@@ -40,17 +40,22 @@ export const enviarCorreoConfirmacionPreinscripcionPrograma = async (params: {
 }) => {
   const { nombre, emailOriginal, programaCodigo, token } = params
   const enlace = `${env.APP_URL.replace(/\/$/, '')}/cursos/verificar?token=${token}`
+  
+  const esAfiliacion = programaCodigo === 'AFILIACION'
+  const accion = esAfiliacion ? 'solicitar tu afiliación a la' : `preinscribirte al programa <strong>${programaCodigo}</strong> de la`
+  const subject = esAfiliacion ? 'Confirma tu solicitud de afiliación' : `Confirma tu preinscripción — ${programaCodigo}`
+
   const { data, error } = await resend.emails.send({
     from: DEFAULT_FROM,
     to: emailOriginal,
-    subject: `Confirma tu preinscripción — ${programaCodigo}`,
+    subject,
     html: `
       <div style="font-family:sans-serif;max-width:600px;margin:0 auto;color:#333;">
         <h2 style="color:#166534;">¡Hola, ${nombre}!</h2>
-        <p>Has solicitado preinscribirte al programa <strong>${programaCodigo}</strong> de la Cámara Inmobiliaria del Estado Bolívar.</p>
-        <p>Para confirmar tu correo electrónico (<em>${emailOriginal}</em>) y completar la solicitud, haz clic aquí:</p>
+        <p>Has solicitado ${accion} Cámara Inmobiliaria del Estado Bolívar.</p>
+        <p>Para confirmar tu correo electrónico (<em>${emailOriginal}</em>) y continuar con el proceso, haz clic aquí:</p>
         <div style="text-align:center;margin:30px 0;">
-          <a href="${enlace}" style="background-color:#16a34a;color:white;padding:12px 24px;text-decoration:none;border-radius:6px;font-weight:bold;display:inline-block;">Confirmar mi preinscripción</a>
+          <a href="${enlace}" style="background-color:#16a34a;color:white;padding:12px 24px;text-decoration:none;border-radius:6px;font-weight:bold;display:inline-block;">Confirmar mi solicitud</a>
         </div>
         <p style="font-size:14px;color:#666;">O copia y pega esto en tu navegador: ${enlace}</p>
         <hr style="border:none;border-top:1px solid #ddd;margin-top:30px;"/>

@@ -100,6 +100,7 @@ const PanelPage = () => {
   const [activeTab, setActiveTab] = useState(searchParams.get('tab') === 'formacion' ? 'Catálogo Académico' : 'Resumen / Inicio');
   const [mobileOpen, setMobileOpen] = useState(false);
 
+  const [loadingAgremiado, setLoadingAgremiado] = useState(true);
   const [agremiado, setAgremiado] = useState<{
     nombre_completo: string;
     codigo_cibir: string | null;
@@ -108,13 +109,18 @@ const PanelPage = () => {
   } | null>(null);
 
   const fetchAgremiado = () => {
-    if (!user?.id_agremiado || !token) return;
+    if (!user?.id_agremiado || !token) {
+      setLoadingAgremiado(false);
+      return;
+    }
+    setLoadingAgremiado(true);
     fetch(`${API_URL}/api/afiliados/${user.id_agremiado}`, {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then(r => r.json())
       .then(d => { if (d.success) setAgremiado(d.data) })
-      .catch(() => { });
+      .catch(() => { })
+      .finally(() => setLoadingAgremiado(false));
   };
 
   useEffect(() => { fetchAgremiado(); }, [user?.id_agremiado, token]);
@@ -169,7 +175,7 @@ const PanelPage = () => {
   const renderContent = () => {
     // 1. Sección de Afiliado
     if (activeTab === 'Resumen / Inicio') {
-      if (isAdmin) return <div className="col-span-1 lg:col-span-3 -m-4 sm:-m-6 lg:-m-8"><CmsDashboard /></div>;
+      if (isAdmin) return <div className="col-span-1 lg:col-span-3 relative z-10"><CmsDashboard /></div>;
       if (isLimited && user?.roles.includes('afiliado')) return <div className="col-span-1 lg:col-span-3"><WidgetFormalizarInscripcion onSuccess={fetchAgremiado} /></div>;
       
       // Si es solo estudiante
@@ -185,8 +191,8 @@ const PanelPage = () => {
       // Afiliado standard
       return (
         <>
-          <div className="lg:col-span-2"><WidgetFinanciero /></div>
-          <div className="lg:col-span-1"><WidgetNotificaciones /></div>
+          <div className="lg:col-span-2"><WidgetFinanciero loading={loadingAgremiado} /></div>
+          <div className="lg:col-span-1"><WidgetNotificaciones loading={loadingAgremiado} /></div>
           <div className="lg:col-span-3"><WidgetAcademico /></div>
         </>
       );
@@ -207,10 +213,10 @@ const PanelPage = () => {
     // 2. Sección Administrativa
     if (!isAdmin) return null;
 
-    if (activeTab === 'Gestión de Afiliados') return <div className="col-span-1 lg:col-span-3 min-h-[600px] border border-gray-100 rounded-3xl bg-white overflow-hidden shadow-xs relative"><UsersPanel /></div>;
-    if (activeTab === 'Administradores') return <div className="col-span-1 lg:col-span-3 border border-gray-100 rounded-3xl bg-white overflow-hidden shadow-xs min-h-[600px] p-6 relative"><SuperAdminUsersPanel /></div>;
-    if (activeTab === 'Análisis y Métricas') return <div className="col-span-1 lg:col-span-3 min-h-[600px] relative"><AnalyticsPanel /></div>;
-    if (activeTab === 'Gestión de Formación') return <div className="col-span-1 lg:col-span-3 border border-gray-100 rounded-3xl bg-white overflow-hidden shadow-xs min-h-[600px] relative"><FormacionPanel /></div>;
+    if (activeTab === 'Gestión de Afiliados') return <div className="col-span-1 lg:col-span-3 min-h-[600px] bg-white border border-gray-100 rounded-3xl shadow-xs overflow-hidden"><UsersPanel /></div>;
+    if (activeTab === 'Administradores') return <div className="col-span-1 lg:col-span-3 bg-white border border-gray-100 rounded-3xl shadow-xs min-h-[600px] p-6 overflow-hidden"><SuperAdminUsersPanel /></div>;
+    if (activeTab === 'Análisis y Métricas') return <div className="col-span-1 lg:col-span-3 min-h-[600px]"><AnalyticsPanel /></div>;
+    if (activeTab === 'Gestión de Formación') return <div className="col-span-1 lg:col-span-3 bg-white border border-gray-100 rounded-3xl shadow-xs min-h-[600px] overflow-hidden"><FormacionPanel /></div>;
 
     // 3. Sección CMS (Incrustada)
     if (activeTab.startsWith('CMS ·') || ['Leyes y Decretos', 'Reglamentos y Estatutos', 'Normas y Procedimientos', 'Actas de Asamblea'].includes(activeTab)) {
@@ -226,7 +232,7 @@ const PanelPage = () => {
       };
       const externalTab = tabMap[activeTab] ?? 'config';
       return (
-        <div className="col-span-1 lg:col-span-3 h-[calc(100vh-160px)] -m-4 sm:-m-6 lg:-m-8 bg-white border border-gray-100 rounded-3xl overflow-hidden relative">
+        <div className="h-full bg-white border border-gray-100 rounded-3xl overflow-hidden shadow-xs">
           <CmsArticlesPanel externalTab={externalTab} />
         </div>
       );
@@ -235,7 +241,7 @@ const PanelPage = () => {
   };
 
   return (
-    <div className="min-h-screen flex font-sans" style={{ backgroundColor: 'var(--color-bg-page)', color: 'var(--color-text-base)' }}>
+    <div className="h-screen flex font-sans overflow-hidden" style={{ backgroundColor: 'var(--color-bg-page)', color: 'var(--color-text-base)' }}>
       <DashboardSidebar
         navItems={navItems}
         activeTab={activeTab}
@@ -245,54 +251,60 @@ const PanelPage = () => {
         onLogout={logout}
       />
 
-      <main className="flex-grow flex flex-col min-w-0">
+      <main className="flex-grow flex flex-col min-w-0 h-full overflow-hidden">
         <DashboardHeader
           onMenuOpen={() => setMobileOpen(true)}
           userName={displayName}
           userCode={displayCode}
         />
 
-        <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto w-full space-y-6 lg:space-y-8">
-          {/* Welcome */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div>
-              <h1 className="text-2xl sm:text-3xl font-black tracking-tight" style={{ color: 'var(--color-primary)' }}>
-                ¡Bienvenido, {displayName}!
-              </h1>
-              <p className="mt-1 font-medium text-sm" style={{ color: 'var(--color-text-muted)' }}>
-                {isAdmin
-                  ? 'Panel unificado · Afiliado y Administración.'
-                  : 'Revisa el estado de tu membresía y tus actualizaciones recientes.'}
-              </p>
-            </div>
+        <div className="flex-1 min-h-0 overflow-y-auto p-4 sm:p-6 lg:p-8">
+          {((activeTab.startsWith('CMS ·') || ['Leyes y Decretos', 'Reglamentos y Estatutos', 'Normas y Procedimientos', 'Actas de Asamblea', 'Gestión de Afiliados', 'Administradores', 'Análisis y Métricas', 'Gestión de Formación'].includes(activeTab)) || (activeTab === 'Resumen / Inicio' && isAdmin)) ? (
+             renderContent()
+          ) : (
+              <div className="max-w-7xl mx-auto w-full space-y-6 lg:space-y-8">
+                {/* Welcome */}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <div>
+                    <h1 className="text-2xl sm:text-3xl font-black tracking-tight" style={{ color: 'var(--color-primary)' }}>
+                      ¡Bienvenido, {displayName}!
+                    </h1>
+                    <p className="mt-1 font-medium text-sm" style={{ color: 'var(--color-text-muted)' }}>
+                      {isAdmin
+                        ? 'Panel unificado · Afiliado y Administración.'
+                        : 'Revisa el estado de tu membresía y tus actualizaciones recientes.'}
+                    </p>
+                  </div>
 
-            <div className="flex flex-wrap gap-2">
-              {user?.roles?.map(role => (
-                <span
-                  key={role}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full shadow-sm text-[10px] font-black uppercase tracking-widest border ${role === 'super_admin' ? 'border-purple-300 bg-purple-50 text-purple-700'
-                    : role === 'admin' ? 'border-blue-200 bg-blue-50 text-blue-700'
-                      : isLimited
-                        ? 'border-amber-200 bg-amber-50 text-amber-700'
-                        : 'border-[var(--color-border-accent)] bg-[var(--color-accent-muted)] text-[var(--color-accent-hover)]'
-                    }`}
-                >
-                  <CheckCircle size={11} />
-                  {role === 'super_admin' ? 'Super Admin'
-                    : role === 'admin' ? 'Administrador'
-                      : role === 'estudiante' ? 'Estudiante'
-                      : isLimited ? 'CIBIR Restringido'
-                        : isActivo ? 'CIBIR Activo'
-                          : agremiado ? `Estatus: ${agremiado.estatus}` : 'Afiliado'}
-                </span>
-              ))}
-            </div>
-          </div>
+                  <div className="flex flex-wrap gap-2">
+                    {/* Filtramos y normalizamos los roles para la vista */}
+                    {Array.from(new Set(user?.roles?.map(r => r === 'super_admin' ? 'admin' : r))).map(role => (
+                      <span
+                        key={role}
+                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full shadow-sm text-[10px] font-black uppercase tracking-widest border ${
+                          role === 'admin' ? 'border-blue-200 bg-blue-50 text-blue-700'
+                            : isLimited
+                              ? 'border-amber-200 bg-amber-50 text-amber-700'
+                              : 'border-[var(--color-border-accent)] bg-[var(--color-accent-muted)] text-[var(--color-accent-hover)]'
+                          }`}
+                      >
+                        <CheckCircle size={11} />
+                        {role === 'admin' ? 'Administrador'
+                            : role === 'estudiante' ? 'Estudiante'
+                            : isLimited ? 'CIBIR Restringido'
+                              : isActivo ? 'CIBIR Activo'
+                                : agremiado ? `Estatus: ${agremiado.estatus}` : 'Afiliado'}
+                      </span>
+                    ))}
+                  </div>
+                </div>
 
-          {/* Content grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 lg:gap-8">
-            {renderContent()}
-          </div>
+                {/* Content grid */}
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 lg:gap-8">
+                  {renderContent()}
+                </div>
+              </div>
+          )}
         </div>
       </main>
     </div>

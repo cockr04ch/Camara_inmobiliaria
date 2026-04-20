@@ -12,6 +12,8 @@ interface Props {
     email: string
     telefono: string
     cedulaRif: string
+    nivelProfesional: string
+    esCorredorInmobiliario: boolean
   }>
 }
 
@@ -39,15 +41,27 @@ const COUNTRIES = [
 ]
 
 export default function PreinscripcionProgramaForm({ programaCodigo, ctaLabel, initialData }: Props) {
+  // Función para extraer el prefijo del país del teléfono (ej: +58424... -> +58)
+  const extractPhone = (phone: string | undefined) => {
+    if (!phone) return { prefix: '+58', number: '' }
+    const country = COUNTRIES.find(c => phone.startsWith(c.code))
+    if (country) {
+      return { prefix: country.code, number: phone.slice(country.code.length) }
+    }
+    return { prefix: '+58', number: phone }
+  }
+
+  const phoneData = extractPhone(initialData?.telefono)
+
   const [formData, setFormData] = useState({
     nombreCompleto: initialData?.nombreCompleto || '',
-    cedulaPrefix: initialData?.cedulaRif?.split('-')[0] || 'V',
-    cedulaNumber: initialData?.cedulaRif?.split('-')[1] || '',
+    cedulaPrefix: initialData?.cedulaRif?.includes('-') ? initialData.cedulaRif.split('-')[0] : 'V',
+    cedulaNumber: initialData?.cedulaRif?.includes('-') ? initialData.cedulaRif.split('-')[1] : (initialData?.cedulaRif || ''),
     email: initialData?.email || '',
-    phonePrefix: '+58',
-    telefono: initialData?.telefono || '',
-    nivelProfesional: '',
-    esCorredorInmobiliario: '',
+    phonePrefix: phoneData.prefix,
+    telefono: phoneData.number,
+    nivelProfesional: initialData?.nivelProfesional || '',
+    esCorredorInmobiliario: initialData?.esCorredorInmobiliario === true ? 'si' : initialData?.esCorredorInmobiliario === false ? 'no' : '',
   })
   const [loading, setLoading] = useState(false)
   const [submitted, setSubmitted] = useState(false)

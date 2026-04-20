@@ -58,13 +58,6 @@ export default function VerificarPreinscripcionProgramaPage() {
             </div>
             <h2 className="text-2xl font-black text-[#022c22]">¡Confirmación Exitosa!</h2>
             <p className="text-slate-500 mt-2 leading-relaxed">{message}</p>
-            <Link
-              to="/cursos"
-              className="mt-8 px-6 py-3 w-full rounded-xl bg-emerald-600 text-white font-bold tracking-wide flex items-center justify-center gap-2 hover:bg-emerald-700 transition"
-            >
-              <Home size={18} />
-              Ver programas y cursos
-            </Link>
           </div>
         )}
 
@@ -76,11 +69,11 @@ export default function VerificarPreinscripcionProgramaPage() {
             <h2 className="text-2xl font-black text-red-900">Confirmación Fallida</h2>
             <p className="text-slate-500 mt-2 leading-relaxed">{message}</p>
             <Link
-              to="/cursos"
+              to="/"
               className="mt-8 px-6 py-3 w-full rounded-xl bg-slate-100 text-slate-700 font-bold tracking-wide flex items-center justify-center gap-2 hover:bg-slate-200 transition"
             >
               <Home size={18} />
-              Volver
+              Volver al inicio
             </Link>
           </div>
         )}

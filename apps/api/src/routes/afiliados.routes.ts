@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { registerAfiliado, getAfiliados, getAfiliadoById, getMisCertificados, aprobarAfiliado, getSolicitudesCibir, rechazarAfiliado, verificarEmail, formalizarInscripcion, updateEstatusAfiliado } from '../controllers/afiliados.controller.js';
+import { registerAfiliado, getAfiliados, getAfiliadoById, getMisCertificados, aprobarAfiliado, getSolicitudesCibir, rechazarAfiliado, verificarEmail, formalizarInscripcion, updateEstatusAfiliado, updateAfiliado } from '../controllers/afiliados.controller.js';
 import { requireAuth, requireRole } from '../middlewares/auth.middleware.js';
 
 const router = Router();
@@ -24,6 +24,9 @@ router.post('/registro/verificar', verificarEmail);
 
 // POST /api/afiliados/formalizar — Para que el afiliado pague su inscripción
 router.post('/formalizar', requireAuth, formalizarInscripcion);
+
+// PATCH /api/afiliados/:id — Actualización general del afiliado
+router.patch('/:id', requireAuth, requireRole('admin', 'super_admin'), updateAfiliado);
 
 // PATCH /api/afiliados/:id/estatus — Actualización granular del proceso de 9 pasos
 router.patch('/:id/estatus', requireAuth, requireRole('admin', 'super_admin'), updateEstatusAfiliado);

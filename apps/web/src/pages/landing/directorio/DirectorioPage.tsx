@@ -34,9 +34,9 @@ const DirectorioPage = () => {
 
   const fuse = useMemo(() => new Fuse(afiliados, {
     keys: ['nombre_completo', 'codigo_cibir', 'cedula_rif'],
-    threshold: 0.3,
+    threshold: 0.25, // Un poco más estricto para evitar ruido en códigos numéricos
     ignoreLocation: true,
-    minMatchCharLength: 2
+    minMatchCharLength: 1
   }), [afiliados]);
 
   const resultados = useMemo(() => {
@@ -63,10 +63,10 @@ const DirectorioPage = () => {
           <div className="max-w-4xl mx-auto relative z-10 text-center space-y-5">
 
             <h1 className="text-4xl md:text-5xl font-black tracking-tight text-[#022c22] dark:text-white">
-              Nuestros Afiliados
+              Nuestros Miembros
             </h1>
             <p className="text-lg text-emerald-800/70 dark:text-emerald-100/70 max-w-2xl mx-auto font-medium">
-              Verifica y contacta a los profesionales inmobiliarios certificados en el Estado Bolívar.
+              Verifica y contacta a los profesionales inmobiliarios certificados que forman parte de nuestra cámara.
             </p>
 
             {/* Buscador */}
@@ -77,7 +77,7 @@ const DirectorioPage = () => {
                 </div>
                 <input
                   type="text"
-                  placeholder="Buscar por nombre, CIBIR o Cédula..."
+                  placeholder="Buscar por nombre, cédula o código..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="block w-full pl-16 pr-24 py-5 rounded-[2rem] bg-white dark:bg-[#04432f] shadow-xl shadow-slate-200/50 dark:shadow-2xl text-slate-800 dark:text-emerald-50 font-bold placeholder-slate-400 outline-none border-2 border-transparent focus:border-emerald-500 transition-all text-lg relative z-0"
@@ -118,7 +118,7 @@ const DirectorioPage = () => {
               </h3>
               <p className="text-slate-500 dark:text-emerald-100/70 font-medium max-w-md mx-auto">
                 {searchQuery.trim() 
-                  ? <>No pudimos encontrar coincidencias para "<strong>{searchQuery}</strong>". Revisa la ortografía o intenta buscar por número de CIBIR.</>
+                  ? <>No pudimos encontrar coincidencias para "<strong>{searchQuery}</strong>". Revisa la ortografía o intenta buscar por Código o Cédula/RIF.</>
                   : 'Actualmente no hay profesionales certificados registrados en esta lista pública.'}
               </p>
             </div>
