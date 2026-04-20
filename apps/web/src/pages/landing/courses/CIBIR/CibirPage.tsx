@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import bgCibir from "../../assets/Pzo.jpg";
-import heroCibir from "../../assets/Cibir.jpg";
+import bgCibir from "@/assets/Pzo.jpg";
+import heroCibir from "@/assets/Cibir.jpg";
 import Navbar from '@/pages/landing/components/navbar/Navbar';
-import Estudiosa from "../../assets/estudiosa1.png";
-import Estudioso from "../../assets/estudioso1.png";
+import Estudiosa from "@/assets/estudiosa1.png";
+import Estudioso from "@/assets/estudioso1.png";
 import PreinscripcionProgramaForm from '@/pages/landing/components/PreinscripcionProgramaForm'
 
 // --- INTERFACES ---
@@ -102,7 +102,7 @@ export default function Cibir() {
   ];
 
   return (
-    <div className="min-h-screen w-full max-w-full overflow-x-hidden bg-[#022c22] text-white font-sans selection:bg-emerald-500/30 scroll-smooth">
+    <div className="w-full max-w-full bg-[#022c22] text-white font-sans selection:bg-emerald-500/30">
       <Navbar darkMode={darkMode} setDarkMode={setDarkMode} />
 
       {/* HEADER CON ANIMACIÓN DE FONDO Y TEXTO SINCRONIZADA */}

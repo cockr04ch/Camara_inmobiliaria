@@ -40,10 +40,11 @@ const DirectorioPage = () => {
   }), [afiliados]);
 
   const resultados = useMemo(() => {
-    if (!searchQuery.trim()) {
+    const query = searchQuery.trim();
+    if (!query) {
       return afiliados;
     }
-    return fuse.search(searchQuery).map(result => result.item);
+    return fuse.search(query).map(result => result.item);
   }, [searchQuery, afiliados, fuse]);
 
   return (
@@ -81,11 +82,13 @@ const DirectorioPage = () => {
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="block w-full pl-16 pr-24 py-5 rounded-[2rem] bg-white dark:bg-[#04432f] shadow-xl shadow-slate-200/50 dark:shadow-2xl text-slate-800 dark:text-emerald-50 font-bold placeholder-slate-400 outline-none border-2 border-transparent focus:border-emerald-500 transition-all text-lg relative z-0"
                 />
-                <div className="absolute inset-y-0 right-4 flex items-center z-10">
-                  <span className="text-xs font-bold text-slate-500 dark:text-emerald-200 bg-slate-50 dark:bg-[#022c22] px-3 py-1.5 rounded-full border border-slate-200 dark:border-emerald-500/20">
-                    {resultados.length}
-                  </span>
-                </div>
+                {searchQuery.trim() && (
+                  <div className="absolute inset-y-0 right-4 flex items-center z-10">
+                    <span className="text-xs font-bold text-slate-500 dark:text-emerald-200 bg-slate-50 dark:bg-[#022c22] px-3 py-1.5 rounded-full border border-slate-200 dark:border-emerald-500/20">
+                      {resultados.length}
+                    </span>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -110,9 +113,13 @@ const DirectorioPage = () => {
               <div className="w-20 h-20 bg-emerald-50 dark:bg-[#022c22] rounded-full flex items-center justify-center mx-auto mb-6 border border-emerald-100 dark:border-emerald-500/10">
                 <Users size={32} className="text-emerald-600 dark:text-emerald-400" />
               </div>
-              <h3 className="text-2xl font-black text-slate-800 dark:text-emerald-50 mb-2">No se encontraron resultados</h3>
+              <h3 className="text-2xl font-black text-slate-800 dark:text-emerald-50 mb-2">
+                {searchQuery.trim() ? 'No se encontraron resultados' : 'Directorio vacío'}
+              </h3>
               <p className="text-slate-500 dark:text-emerald-100/70 font-medium max-w-md mx-auto">
-                No pudimos encontrar a "<strong>{searchQuery}</strong>". Revisa la ortografía o intenta buscar por número de CIBIR.
+                {searchQuery.trim() 
+                  ? <>No pudimos encontrar coincidencias para "<strong>{searchQuery}</strong>". Revisa la ortografía o intenta buscar por número de CIBIR.</>
+                  : 'Actualmente no hay profesionales certificados registrados en esta lista pública.'}
               </p>
             </div>
           )}

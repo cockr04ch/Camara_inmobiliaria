@@ -15,6 +15,7 @@ import WidgetFinanciero from '@/pages/afiliado/components/WidgetFinanciero';
 import WidgetNotificaciones from '@/pages/afiliado/components/WidgetNotificaciones';
 import WidgetAcademico from '@/pages/afiliado/components/WidgetAcademico';
 import WidgetFormalizarInscripcion from '@/pages/afiliado/components/WidgetFormalizarInscripcion';
+import AffiliationTimeline from '@/pages/afiliado/components/AffiliationTimeline';
 import { useAuth } from '@/context/AuthContext';
 import { API_URL } from '@/config/env';
 
@@ -55,9 +56,10 @@ const AfiliadoPage = () => {
 
   const displayName = agremiado?.nombre_completo ?? user?.email?.split('@')[0] ?? 'Afiliado';
   const displayCode = agremiado?.codigo_cibir ?? '—';
-  const isActivo = agremiado?.estatus === 'CIBIR';
+  const isActivo = agremiado?.estatus === '9_AFILIACION';
   const isPaid = agremiado?.inscripcion_pagada === 1;
   const isLimited = isActivo && !isPaid;
+  const inProcess = agremiado && agremiado.estatus !== '9_AFILIACION' && !agremiado.estatus.includes('Moroso') && !agremiado.estatus.includes('Suspendido') && !agremiado.estatus.includes('Rechazado');
 
   const filteredNavItems = isLimited
     ? [
@@ -103,10 +105,15 @@ const AfiliadoPage = () => {
             >
               <CheckCircle size={15} className={isLimited ? 'text-amber-500' : 'text-[var(--color-accent)]'} />
               <span className={`font-black text-[10px] uppercase tracking-widest ${isLimited ? 'text-amber-700' : 'text-[var(--color-accent-hover)]'}`}>
-                {isLimited ? 'CIBIR Restringido (Pago Pendiente)' : isActivo ? 'CIBIR Activo' : agremiado ? `Estatus: ${agremiado.estatus}` : 'Afiliado'}
+                {isLimited ? 'CIBIR Restringido (Pago Pendiente)' : isActivo ? 'CIBIR Activo' : agremiado ? `Estado: ${agremiado.estatus.replace(/_/g, ' ')}` : 'Afiliado'}
               </span>
             </div>
           </div>
+
+          {/* Timeline for process */}
+          {inProcess && (
+            <AffiliationTimeline currentStatus={agremiado.estatus} />
+          )}
 
           {/* Widget grid */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 lg:gap-8">

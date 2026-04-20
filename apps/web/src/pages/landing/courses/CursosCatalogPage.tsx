@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { API_URL } from '@/config/env'
 import Swal from 'sweetalert2'
+import { CourseSkeletonGrid } from '@/components/Skeletons'
+import SEO from '@/components/SEO'
 
 interface CursoDB {
   id_curso: number
@@ -75,6 +77,11 @@ export default function CursosCatalogPage() {
 
   return (
     <section id='cursos' className={`relative min-h-screen w-full max-w-full overflow-x-hidden transition-all duration-700 px-4 sm:px-6 lg:px-20 py-24 scroll-mt-24 ${darkMode ? 'bg-[#011a14] text-white' : 'bg-[#f8fafc] text-slate-900'}`}>
+      <SEO 
+        title="Catálogo de Formación Inmobiliaria"
+        description="Explora nuestra oferta académica para profesionales de bienes raíces en Bolívar. Cursos, talleres y certificaciones avaladas por la CIBIR."
+        keywords="cursos inmobiliarios bolivar, capacitacion bienes raices, certificacion inmobiliaria venezuela, puerto ordaz formacion"
+      />
       <div className={`absolute inset-0 opacity-20 pointer-events-none ${darkMode ? 'opacity-10' : 'opacity-40'}`} style={{ backgroundImage: 'radial-gradient(#10b981 0.5px, transparent 0.5px)', backgroundSize: '24px 24px' }} />
       <div className='fixed top-4 sm:top-6 inset-x-0 box-border px-4 sm:px-6 lg:px-20 flex justify-between items-center z-[60] pointer-events-none'>
         <button type='button' onClick={() => navigate('/')} className='pointer-events-auto flex items-center gap-1.5 sm:gap-2 px-4 sm:px-6 py-2.5 sm:py-3 bg-emerald-500 text-[#022c22] rounded-2xl font-black text-[10px] sm:text-xs shadow-2xl hover:bg-emerald-400 transition-all active:scale-95'>
@@ -104,7 +111,7 @@ export default function CursosCatalogPage() {
 
       <div className='grid sm:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8 relative z-10'>
         {loading ? (
-          <div className="col-span-full text-center text-emerald-500 font-bold p-10">Cargando catálogo...</div>
+          <CourseSkeletonGrid count={8} />
         ) : cursos.length === 0 ? (
           <div className="col-span-full text-center text-slate-400 font-bold p-10">No hay cursos disponibles actualmente.</div>
         ) : cursos.map((curso) => (

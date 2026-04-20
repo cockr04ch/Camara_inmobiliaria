@@ -38,8 +38,15 @@ const statements = [
     nombre_completo             TEXT        NOT NULL,
     email                       TEXT        UNIQUE NOT NULL,
     telefono                    TEXT,
-    estatus                     TEXT        NOT NULL DEFAULT 'Preinscrito'
-                                CHECK (estatus IN ('Preinscrito','CIBIR','Moroso','Suspendido', 'Rechazado')),
+    estatus                     TEXT        NOT NULL DEFAULT '1_SOLICITUD'
+                                CHECK (estatus IN (
+                                  '1_SOLICITUD','2_REQUISITOS','3_CONFIRMACION',
+                                  '4_RECEPCION','5_ENTREVISTA','6_JUNTA_DIRECTIVA',
+                                  '7_RESULTADO','8_FORMALIZACION','9_AFILIACION',
+                                  'Moroso','Suspendido','Rechazado'
+                                )),
+    cibir_convalidado           INTEGER     NOT NULL DEFAULT 0
+                                CHECK (cibir_convalidado IN (0, 1)),
     inscripcion_pagada          INTEGER     NOT NULL DEFAULT 0,
     fecha_registro              TEXT        NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ','now')),
     fecha_ultimo_cambio_estatus TEXT,
@@ -605,6 +612,17 @@ async function migrateLegacyColumns(): Promise<void> {
     await migrateInscripcionesEstatusCheck()
   }
 
+  if (await tableExists('agremiados')) {
+    const cols = await tableColumnNames('agremiados')
+    if (!cols.has('cibir_convalidado')) {
+      await db.execute(`ALTER TABLE agremiados ADD COLUMN cibir_convalidado INTEGER NOT NULL DEFAULT 0`)
+      console.log('  · migrate: agremiados.cibir_convalidado')
+    }
+    
+    // Migración de estados de agremiados
+    await migrateAgremiadosEstatusCheck()
+  }
+
   if (!(await tableExists('cms_normativas'))) {
     console.log('  · migrate: cms_normativas (creando tabla)')
     await db.execute(statements.find(s => s.includes('CREATE TABLE IF NOT EXISTS cms_normativas'))!)
@@ -664,6 +682,77 @@ async function migrateInscripcionesEstatusCheck() {
     const hasOld = await db.execute("SELECT 1 FROM sqlite_master WHERE name='inscripciones_cursos_old'")
     if (hasOld.rows.length > 0) {
       await db.execute('ALTER TABLE inscripciones_cursos_old RENAME TO inscripciones_cursos')
+    }
+  } finally {
+    await db.execute('PRAGMA foreign_keys = ON')
+  }
+}
+
+async function migrateAgremiadosEstatusCheck() {
+  const res = await db.execute("SELECT sql FROM sqlite_master WHERE type='table' AND name='agremiados'")
+  if (res.rows.length === 0) return
+  
+  const sql = res.rows[0].sql as string
+  if (sql.includes("'1_SOLICITUD'")) return
+
+  console.log('  · migrate: Actualizando CHECK constraint de agremiados (recreando tabla)...')
+
+  await db.execute('PRAGMA foreign_keys = OFF')
+  
+  try {
+    // 1. Renombrar
+    await db.execute('ALTER TABLE agremiados RENAME TO agremiados_old')
+
+    // 2. Crear nueva con el esquema correcto
+    const createStmt = statements.find(s => s.includes('CREATE TABLE IF NOT EXISTS agremiados'))!
+    await db.execute(createStmt)
+
+    // 3. Mapear columnas comunes para la copia
+    const oldColsRes = await db.execute('PRAGMA table_info(agremiados_old)')
+    const oldCols = (oldColsRes.rows as any[]).map(c => c.name)
+    const newColsRes = await db.execute('PRAGMA table_info(agremiados)')
+    const newCols = (newColsRes.rows as any[]).map(c => c.name)
+
+    const commonCols = oldCols.filter(c => newCols.includes(c))
+    const colsStr = commonCols.join(', ')
+
+    // 4. Copiar datos mapeando estados viejos a nuevos
+    await db.execute(`
+      INSERT INTO agremiados (${colsStr})
+      SELECT 
+        ${commonCols.map(c => {
+          if (c === 'estatus') {
+            return `CASE 
+              WHEN estatus = 'Preinscrito' THEN '1_SOLICITUD'
+              WHEN estatus = 'CIBIR' THEN '9_AFILIACION'
+              ELSE estatus 
+            END`
+          }
+          return c
+        }).join(', ')}
+      FROM agremiados_old
+    `)
+
+    // 5. Recrear índices asociados
+    const tableIndexes = statements.filter(s => 
+      (s.includes('CREATE INDEX') || s.includes('CREATE UNIQUE INDEX')) && 
+      s.includes('ON agremiados')
+    )
+    for (const idx of tableIndexes) {
+      await db.execute(idx)
+    }
+
+    // 6. Borrar tabla vieja
+    await db.execute('DROP TABLE agremiados_old')
+    
+    console.log('  · migrate: agremiados actualizada exitosamente.')
+  } catch (err) {
+    console.error('Error en migración de agremiados:', err)
+    // Intentar restaurar si falló
+    await db.execute('DROP TABLE IF EXISTS agremiados')
+    const hasOld = await db.execute("SELECT 1 FROM sqlite_master WHERE name='agremiados_old'")
+    if (hasOld.rows.length > 0) {
+      await db.execute('ALTER TABLE agremiados_old RENAME TO agremiados')
     }
   } finally {
     await db.execute('PRAGMA foreign_keys = ON')

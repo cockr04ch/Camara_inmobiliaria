@@ -10,6 +10,7 @@ import DirectivaSection from '@/pages/landing/components/sections/DirectivaSecti
 import Footer from '@/pages/landing/components/Footer'
 import LoginModal from '@/pages/landing/components/LoginModal'
 import RegisterModal from '@/pages/landing/components/RegisterModal'
+import SEO from '@/components/SEO'
 
 import ConveniosSection from '@/pages/landing/components/sections/ConveniosSection'
 import NoticiasSection from '@/pages/landing/components/sections/NoticiasSection'
@@ -20,7 +21,12 @@ export default function LandingPage() {
   const [darkMode, setDarkMode] = useState(false)
 
   return (
-    <div className={`${darkMode ? 'dark bg-[#022c22]' : 'bg-slate-50'} min-h-screen transition-colors duration-300`}>
+    <div className={`${darkMode ? 'dark bg-[#022c22]' : 'bg-slate-50'} transition-colors duration-300`}>
+      <SEO 
+        title="Líderes en el Sector Inmobiliario" 
+        description="Página oficial de la Cámara Inmobiliaria del Estado Bolívar (CIBIR). Encuentra las mejores inmobiliarias en Bolívar, profesionales certificados y formación de vanguardia."
+        keywords="inmobiliarias en estado bolivar, camara inmobiliaria bolivar, bienes raices puerto ordaz, ciudad bolivar inmobiliaria, cursos inmobiliarios bolivar, cibir"
+      />
 
       <Navbar
         darkMode={darkMode}

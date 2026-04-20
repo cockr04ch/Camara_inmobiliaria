@@ -1,4 +1,4 @@
-import bgBolivar from '@/pages/landing/assets/Pzo.jpg'
+import bgBolivar from '@/assets/Pzo.jpg'
 import { Link } from 'react-router-dom'
 import { useCachedConfig } from '@/hooks/useCachedConfig'
 import { STATIC } from '@/pages/landing/config/staticContent'
@@ -40,7 +40,7 @@ export default function Header({ darkMode }: { darkMode?: boolean }) {
         style={{ animationDelay: '0.8s', opacity: 0 }}
       >
         <h1
-          className='text-white text-5xl lg:text-7xl font-bold leading-[1.1]'
+          className='text-white text-4xl sm:text-5xl lg:text-7xl font-bold leading-[1.1]'
           dangerouslySetInnerHTML={{ __html: cfg['hero_titulo'] || s.titulo }}
         />
 

@@ -217,7 +217,7 @@ export const verificarEmail = async (req: Request, res: Response) => {
     }
 
     // Insertar en agremiados
-    const estatus = 'Preinscrito';
+    const estatus = '1_SOLICITUD';
     const cibir = null;
 
     try {
@@ -320,14 +320,14 @@ export const aprobarAfiliado = async (req: Request, res: Response) => {
       });
     }
 
-    if (agremiado.estatus !== 'Preinscrito') {
+    if (agremiado.estatus !== '6_JUNTA_DIRECTIVA' && agremiado.estatus !== '1_SOLICITUD') {
       return res.status(400).json({
         success: false,
-        message: 'Solo los candidatos con estatus "Preinscrito" pueden ser aprobados'
+        message: 'El candidato debe estar en proceso de aprobación para ser aprobado'
       });
     }
 
-    // 2. Generar el código CIBIR (CIBIR-YYYY-NNN)
+    // 2. Generar el código CIBIR (CIBIR-YYYY-NNN) - Se mantiene como identificador
     const currentYear = new Date().getFullYear();
     const prefix = `CIBIR-${currentYear}-`;
 
@@ -348,13 +348,12 @@ export const aprobarAfiliado = async (req: Request, res: Response) => {
 
     const codigoCibir = `${prefix}${correlativo.toString().padStart(3, '0')}`;
 
-    // 3. Actualizar a estatus CIBIR
+    // 3. Actualizar a estatus 7_RESULTADO (Aprobado)
     const fechaCambio = new Date().toISOString();
     
-    // Suponemos que también asignaremos el código CIBIR
     const updateResult = await db.execute({
       sql: `UPDATE agremiados 
-            SET estatus = 'CIBIR', codigo_cibir = ?, fecha_ultimo_cambio_estatus = ?
+            SET estatus = '7_RESULTADO', codigo_cibir = ?, fecha_ultimo_cambio_estatus = ?
             WHERE id_agremiado = ? RETURNING *`,
       args: [codigoCibir, fechaCambio, id]
     });
@@ -424,10 +423,10 @@ export const rechazarAfiliado = async (req: Request, res: Response) => {
       });
     }
 
-    if (agremiado.estatus !== 'Preinscrito') {
+    if (agremiado.estatus === '9_AFILIACION') {
       return res.status(400).json({
         success: false,
-        message: 'Solo los candidatos con estatus "Preinscrito" pueden ser rechazados'
+        message: 'No se puede rechazar a un afiliado activo'
       });
     }
 
@@ -470,7 +469,7 @@ export const buscarAfiliadosPublic = async (req: Request, res: Response) => {
     let sql = `
       SELECT id_agremiado, nombre_completo, codigo_cibir, cedula_rif 
       FROM agremiados 
-      WHERE estatus = 'CIBIR'
+      WHERE estatus = '9_AFILIACION'
       ORDER BY nombre_completo ASC 
       LIMIT 1000
     `;
@@ -519,10 +518,10 @@ export const getSolicitudesCibir = async (req: Request, res: Response) => {
     // Primero, obtener los contadores para los badges de la UI
     const countSql = `
       SELECT 
-        SUM(CASE WHEN estatus IN ('Preinscrito', 'CIBIR', 'Suspendido') THEN 1 ELSE 0 END) as todos,
-        SUM(CASE WHEN estatus = 'Preinscrito' THEN 1 ELSE 0 END) as pendiente,
-        SUM(CASE WHEN estatus = 'CIBIR' THEN 1 ELSE 0 END) as aprobado,
-        SUM(CASE WHEN estatus = 'Suspendido' THEN 1 ELSE 0 END) as rechazado
+        COUNT(*) as todos,
+        SUM(CASE WHEN estatus NOT IN ('9_AFILIACION', 'Suspendido', 'Rechazado', 'Moroso') THEN 1 ELSE 0 END) as pendiente,
+        SUM(CASE WHEN estatus = '9_AFILIACION' THEN 1 ELSE 0 END) as aprobado,
+        SUM(CASE WHEN estatus IN ('Suspendido', 'Rechazado') THEN 1 ELSE 0 END) as rechazado
       FROM agremiados
     `;
     const countResult = await db.execute({ sql: countSql, args: [] });
@@ -533,11 +532,11 @@ export const getSolicitudesCibir = async (req: Request, res: Response) => {
     const args: any[] = [];
 
     if (tab === 'pendiente') {
-      sql = `SELECT * FROM agremiados WHERE estatus = 'Preinscrito'`;
+      sql = `SELECT * FROM agremiados WHERE estatus NOT IN ('9_AFILIACION', 'Suspendido', 'Rechazado', 'Moroso')`;
     } else if (tab === 'aprobado') {
-      sql = `SELECT * FROM agremiados WHERE estatus = 'CIBIR'`;
+      sql = `SELECT * FROM agremiados WHERE estatus = '9_AFILIACION'`;
     } else if (tab === 'rechazado') {
-      sql = `SELECT * FROM agremiados WHERE estatus = 'Suspendido'`;
+      sql = `SELECT * FROM agremiados WHERE estatus IN ('Suspendido', 'Rechazado')`;
     }
 
     sql += ' ORDER BY fecha_registro DESC';
@@ -583,7 +582,6 @@ export const formalizarInscripcion = async (req: Request, res: Response) => {
     }
 
     // Actualizar agremiados para marcar inscripcion_pagada = 1
-    // Idealmente guardaríamos el pago en transacciones_pagos, pero esta es la lógica de formalización simplificada aprobada
     await db.execute({
       sql: `UPDATE agremiados SET inscripcion_pagada = 1 WHERE id_agremiado = ?`,
       args: [requesterId]
@@ -599,5 +597,58 @@ export const formalizarInscripcion = async (req: Request, res: Response) => {
       success: false,
       message: 'Error interno del servidor al intentar formalizar el pago'
     });
+  }
+};
+
+export const updateEstatusAfiliado = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { estatus, cibir_convalidado } = req.body;
+
+    const allowedStatuses = [
+      '1_SOLICITUD', '2_REQUISITOS', '3_CONFIRMACION', 
+      '4_RECEPCION', '5_ENTREVISTA', '6_JUNTA_DIRECTIVA', 
+      '7_RESULTADO', '8_FORMALIZACION', '9_AFILIACION',
+      'Moroso', 'Suspendido', 'Rechazado'
+    ];
+
+    if (estatus && !allowedStatuses.includes(estatus)) {
+      return res.status(400).json({ success: false, message: 'Estado no válido' });
+    }
+
+    const setParts: string[] = [];
+    const args: any[] = [];
+
+    if (estatus) {
+      setParts.push('estatus = ?');
+      args.push(estatus);
+      setParts.push('fecha_ultimo_cambio_estatus = ?');
+      args.push(new Date().toISOString());
+    }
+
+    if (cibir_convalidado !== undefined) {
+      setParts.push('cibir_convalidado = ?');
+      args.push(cibir_convalidado ? 1 : 0);
+    }
+
+    if (setParts.length === 0) {
+      return res.status(400).json({ success: false, message: 'Nada que actualizar' });
+    }
+
+    args.push(Number(id));
+
+    const result = await db.execute({
+      sql: `UPDATE agremiados SET ${setParts.join(', ')} WHERE id_agremiado = ? RETURNING *`,
+      args
+    });
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ success: false, message: 'Agremiado no encontrado' });
+    }
+
+    return res.json({ success: true, data: result.rows[0] });
+  } catch (error) {
+    console.error('Error en updateEstatusAfiliado:', error);
+    return res.status(500).json({ success: false, message: 'Error al actualizar estado' });
   }
 };

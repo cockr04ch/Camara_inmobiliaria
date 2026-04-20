@@ -452,15 +452,22 @@ function isValidDocumentUrl(url: string): boolean {
 }
 
 /** GET /api/public/normativas — solo publicados y activos */
-export const publicListNormativas = async (_req: Request, res: Response) => {
+export const publicListNormativas = async (req: Request, res: Response) => {
   try {
-    const result = await db.execute({
-      sql: `SELECT id, titulo, descripcion, url_documento, categoria, orden
+    const { categoria } = req.query;
+    let sql = `SELECT id, titulo, descripcion, url_documento, categoria, orden
             FROM cms_normativas
-            WHERE activo = 1
-            ORDER BY orden ASC, id ASC`,
-      args: [],
-    })
+            WHERE activo = 1`;
+    const args: any[] = [];
+
+    if (categoria) {
+      sql += ` AND categoria = ?`;
+      args.push(categoria);
+    }
+
+    sql += ` ORDER BY orden ASC, id ASC`;
+    
+    const result = await db.execute({ sql, args });
     return res.json({ success: true, data: result.rows })
   } catch (error) {
     console.error('publicListNormativas:', error)

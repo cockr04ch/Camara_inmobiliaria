@@ -1,13 +1,11 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { NavMenuItem } from './navData'; // Importas el tipo
+import { NavMenuItem } from './navData';
 
 interface NavItemProps {
   item: NavMenuItem;
 }
-/* ─────────────────────────────────────────────────────────────────────────────
-   COMPONENTE: NavItem (Sub-menú desplegable)
-   ───────────────────────────────────────────────────────────────────────────── */
+
 export default function NavItem({ item }: NavItemProps) {
   const [isOpen, setIsOpen] = useState(false)
 
@@ -20,7 +18,7 @@ export default function NavItem({ item }: NavItemProps) {
       onMouseLeave={() => setIsOpen(false)}
     >
       <Link to={hasOptions ? '#' : item.Tpath}>
-        <button className='flex items-center gap-1 hover:text-emerald-400 transition py-2 font-medium font-bold text-sm'>
+        <button className='flex items-center gap-1 hover:text-emerald-400 transition py-2 font-bold text-sm'>
           {item.title}
 
           {hasOptions && (

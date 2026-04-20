@@ -1,31 +1,32 @@
+import React from 'react'
 import { BrowserRouter, Routes, Route, Navigate, useSearchParams } from 'react-router-dom'
 import { AuthProvider } from '@/context/AuthContext'
 import ProtectedRoute from '@/components/ProtectedRoute'
-import LandingPage from '@/pages/landing/LandingPage'
+import ScrollToHash from '@/components/ScrollToHash'
+import ScrollToTop from '@/components/ScrollToTop'
 
-// Pages
-import CursosCatalogPage   from '@/pages/landing/courses/CursosCatalogPage'
-import MisionVisionPage    from '@/pages/landing/mision-vision/MisionVisionPage'
-import JuntaDirectivaPage  from '@/pages/landing/junta-directiva/JuntaDirectivaPage'
-import HistoriaPage        from '@/pages/landing/historia/HistoriaPage'
-import CivPage             from '@/pages/landing/courses/CIV/CivPage'
-import AdminPage           from '@/pages/admin/AdminPage'
-import DireccionPage       from '@/pages/landing/direccion/DireccionPage'
-import PropositoPage       from '@/pages/landing/proposito/PropositoPage'
-import PanelPage           from '@/pages/panel/PanelPage'
-import CibirPage           from '@/pages/landing/courses/CIBIR/CibirPage'
-import VerificarEmailPage  from '@/pages/landing/courses/CIBIR/VerificarEmailPage'
-import DirectorioPage      from '@/pages/landing/directorio/DirectorioPage'
-import PreaniPage          from '@/pages/landing/courses/PREANI/PreaniPage'
-import PegiPage            from '@/pages/landing/courses/PEGI/PegiPage'
-import PadiPage            from '@/pages/landing/courses/PADI/PadiPage'
+// Static imports (Removing lazy/preload)
+import LandingPage from '@/pages/landing/LandingPage'
+import CursosCatalogPage from '@/pages/landing/courses/CursosCatalogPage'
+import MisionVisionPage from '@/pages/landing/mision-vision/MisionVisionPage'
+import JuntaDirectivaPage from '@/pages/landing/junta-directiva/JuntaDirectivaPage'
+import HistoriaPage from '@/pages/landing/historia/HistoriaPage'
+import CivPage from '@/pages/landing/courses/CIV/CivPage'
+import AdminPage from '@/pages/admin/AdminPage'
+import DireccionPage from '@/pages/landing/direccion/DireccionPage'
+import PropositoPage from '@/pages/landing/proposito/PropositoPage'
+import PanelPage from '@/pages/panel/PanelPage'
+import CibirPage from '@/pages/landing/courses/CIBIR/CibirPage'
+import VerificarEmailPage from '@/pages/landing/courses/CIBIR/VerificarEmailPage'
+import DirectorioPage from '@/pages/landing/directorio/DirectorioPage'
+import PreaniPage from '@/pages/landing/courses/PREANI/PreaniPage'
+import PegiPage from '@/pages/landing/courses/PEGI/PegiPage'
+import PadiPage from '@/pages/landing/courses/PADI/PadiPage'
 import VerificarPreinscripcionProgramaPage from '@/pages/landing/courses/VerificarPreinscripcionProgramaPage'
-import SetupPasswordPage    from '@/pages/auth/SetupPasswordPage'
-import LobbyPage           from '@/pages/lobby/LobbyPage'
+import SetupPasswordPage from '@/pages/auth/SetupPasswordPage'
+import LobbyPage from '@/pages/lobby/LobbyPage'
 import ComprobantePublicoPage from '@/pages/comprobante/ComprobantePublicoPage'
-import ScrollToHash        from '@/components/ScrollToHash'
-import Convenios from '@/pages/landing/marco-legal/convenios/comerciales'
-import NormativasPage from '@/pages/landing/marco-legal/NormativasPage'
+import MarcoLegalPage from '@/pages/landing/marco-legal/MarcoLegalPage'
 import RequisitosPage from '@/pages/landing/afiliados/RequisitosPage'
 
 function PreservingQueryNavigate({ to }: { to: string }) {
@@ -38,6 +39,7 @@ export default function App() {
   return (
     <BrowserRouter>
       <ScrollToHash />
+      <ScrollToTop />
       <AuthProvider>
         <Routes>
           {/* Rutas públicas */}
@@ -54,8 +56,9 @@ export default function App() {
           <Route path='/cibir/verificar' element={<VerificarEmailPage />} />
           <Route path='/cursos/verificar' element={<VerificarPreinscripcionProgramaPage />} />
           <Route path='/formacion/verificar' element={<PreservingQueryNavigate to='/cursos/verificar' />} />
-          <Route path='/convenios' element={<Convenios />} />
-          <Route path='/normativas' element={<NormativasPage />} />
+          <Route path='/marco-legal/:category' element={<MarcoLegalPage />} />
+          <Route path='/convenios' element={<Navigate to='/marco-legal/normas-y-procedimientos' replace />} />
+          <Route path='/normativas' element={<Navigate to='/marco-legal/leyes-y-decretos' replace />} />
           <Route path='/directorio'    element={<DirectorioPage />} />
           <Route path='/requisitos'    element={<RequisitosPage />} />
           <Route path='/comprobante/:codigo' element={<ComprobantePublicoPage />} />

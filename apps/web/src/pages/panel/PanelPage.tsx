@@ -18,6 +18,7 @@ import {
   Image as ImageIcon,
   UserCog,
   FileText,
+  UserPlus,
 } from 'lucide-react';
 import DashboardSidebar from '@/pages/afiliado/components/DashboardSidebar';
 import DashboardHeader from '@/pages/afiliado/components/DashboardHeader';
@@ -26,12 +27,14 @@ import WidgetNotificaciones from '@/pages/afiliado/components/WidgetNotificacion
 import WidgetAcademico from '@/pages/afiliado/components/WidgetAcademico';
 import WidgetFormalizarInscripcion from '@/pages/afiliado/components/WidgetFormalizarInscripcion';
 import WidgetMisCertificados from '@/pages/afiliado/components/WidgetMisCertificados';
+import WidgetSolicitudAfiliacion from '@/pages/afiliado/components/WidgetSolicitudAfiliacion';
 
-// Componentes Administrativos pre-existentes
+// Componentes Administrativos
 import UsersPanel from '@/pages/admin/components/Users/UsersPanel';
 import SuperAdminUsersPanel from '@/pages/admin/components/Users/SuperAdminUsersPanel';
 import AnalyticsPanel from '@/pages/admin/components/Analytics/AnalyticsPanel';
 import FormacionPanel from '@/pages/admin/components/Formacion/FormacionPanel';
+
 import CmsDashboard from '@/pages/admin/components/dashboard/CmsDashboard';
 import CmsArticlesPanel, { type CmsTab } from '@/pages/admin/components/Cms/CmsArticlesPanel';
 import { useSearchParams } from 'react-router-dom';
@@ -58,8 +61,16 @@ const NAV_ADMIN_CORE = [
 
 const NAV_CMS = [
   { icon: Newspaper, label: 'CMS · Noticias' },
-  { icon: Handshake, label: 'CMS · Convenios' },
-  { icon: FileText, label: 'CMS · Normativas' },
+  { 
+    icon: FileText, 
+    label: 'CMS · Marco Legal',
+    children: [
+      { icon: FileText, label: 'Leyes y Decretos' },
+      { icon: FileText, label: 'Reglamentos y Estatutos' },
+      { icon: FileText, label: 'Normas y Procedimientos' },
+      { icon: FileText, label: 'Actas de Asamblea' },
+    ]
+  },
   { icon: Users, label: 'CMS · Directiva' },
   { icon: Settings, label: 'CMS · Configuración' },
 ];
@@ -79,12 +90,12 @@ const Section = ({ label }: { label: string }) => (
   </div>
 );
 
-/* Eliminado el wrap de redirección innecesario */
+
 
 // ─── Panel unificado principal ────────────────────────────────────────────────
 
 const PanelPage = () => {
-  const { user, token, logout, isAdmin, isSuperAdmin, isEstudiante } = useAuth();
+  const { user, token, logout, isAdmin, isSuperAdmin, isEstudiante, isAfiliado } = useAuth();
   const [searchParams] = useSearchParams();
   const [activeTab, setActiveTab] = useState(searchParams.get('tab') === 'formacion' ? 'Catálogo Académico' : 'Resumen / Inicio');
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -129,6 +140,7 @@ const PanelPage = () => {
         { icon: LayoutDashboard, label: 'Resumen / Inicio' },
         { icon: GraduationCap, label: 'Catálogo Académico' },
         { icon: Award, label: 'Mis Certificados' },
+        { icon: UserPlus, label: 'Solicitud de Afiliación' },
       ];
     }
 
@@ -161,9 +173,10 @@ const PanelPage = () => {
       if (isLimited && user?.roles.includes('afiliado')) return <div className="col-span-1 lg:col-span-3"><WidgetFormalizarInscripcion onSuccess={fetchAgremiado} /></div>;
       
       // Si es solo estudiante
-      if (isEstudiante && user?.roles.length === 1) {
+      if (isEstudiante && !isAfiliado) {
         return (
           <>
+            <div className="lg:col-span-3"><WidgetSolicitudAfiliacion /></div>
             <div className="lg:col-span-3"><WidgetAcademico /></div>
           </>
         )
@@ -189,6 +202,7 @@ const PanelPage = () => {
       );
     }
     if (activeTab === 'Sistema de Denuncias') return <Section label="Sistema de Denuncias" />;
+    if (activeTab === 'Solicitud de Afiliación') return <div className="col-span-1 lg:col-span-3"><WidgetSolicitudAfiliacion /></div>;
 
     // 2. Sección Administrativa
     if (!isAdmin) return null;
@@ -199,11 +213,14 @@ const PanelPage = () => {
     if (activeTab === 'Gestión de Formación') return <div className="col-span-1 lg:col-span-3 border border-gray-100 rounded-3xl bg-white overflow-hidden shadow-xs min-h-[600px] relative"><FormacionPanel /></div>;
 
     // 3. Sección CMS (Incrustada)
-    if (activeTab.startsWith('CMS ·')) {
+    if (activeTab.startsWith('CMS ·') || ['Leyes y Decretos', 'Reglamentos y Estatutos', 'Normas y Procedimientos', 'Actas de Asamblea'].includes(activeTab)) {
       const tabMap: Record<string, CmsTab> = {
         'CMS · Noticias': 'noticias',
-        'CMS · Convenios': 'convenios',
-        'CMS · Normativas': 'normativas',
+        'CMS · Marco Legal': 'normativas',
+        'Leyes y Decretos': 'leyes',
+        'Reglamentos y Estatutos': 'reglamentos',
+        'Normas y Procedimientos': 'normas',
+        'Actas de Asamblea': 'actas',
         'CMS · Directiva': 'directiva',
         'CMS · Configuración': 'config',
       };

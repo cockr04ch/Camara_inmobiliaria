@@ -2,7 +2,11 @@ import React, { useEffect, useMemo, useState } from 'react'
 import { API_URL } from '@/config/env'
 import { useAuth } from '@/context/AuthContext'
 
-type EstatusAgremiado = 'Preinscrito' | 'CIBIR' | 'Moroso' | 'Suspendido' | 'Rechazado'
+type EstatusAgremiado = 
+  | '1_SOLICITUD' | '2_REQUISITOS' | '3_CONFIRMACION' 
+  | '4_RECEPCION' | '5_ENTREVISTA' | '6_JUNTA_DIRECTIVA' 
+  | '7_RESULTADO' | '8_FORMALIZACION' | '9_AFILIACION'
+  | 'Moroso' | 'Suspendido' | 'Rechazado' | 'Preinscrito' | 'CIBIR'
 
 type Agremiado = {
   id_agremiado: number
@@ -12,6 +16,7 @@ type Agremiado = {
   email: string
   telefono: string | null
   estatus: EstatusAgremiado
+  cibir_convalidado?: number
   inscripcion_pagada: number
   fecha_registro: string
   fecha_ultimo_cambio_estatus: string | null
@@ -97,11 +102,22 @@ export default function AfiliadosPanel() {
               className="flex-1 rounded-xl border border-gray-200 px-3 py-2 text-sm text-slate-700"
             >
               <option value="Todos">Todos</option>
-              <option value="Preinscrito">Preinscrito</option>
-              <option value="CIBIR">CIBIR</option>
-              <option value="Moroso">Moroso</option>
-              <option value="Suspendido">Suspendido</option>
-              <option value="Rechazado">Rechazado</option>
+              <optgroup label="Proceso de Afiliación">
+                <option value="1_SOLICITUD">1. Solicitud</option>
+                <option value="2_REQUISITOS">2. Requisitos</option>
+                <option value="3_CONFIRMACION">3. Confirmación</option>
+                <option value="4_RECEPCION">4. Recepción</option>
+                <option value="5_ENTREVISTA">5. Entrevista</option>
+                <option value="6_JUNTA_DIRECTIVA">6. Junta Directiva</option>
+                <option value="7_RESULTADO">7. Resultado</option>
+                <option value="8_FORMALIZACION">8. Formalización</option>
+              </optgroup>
+              <optgroup label="Estados Finales">
+                <option value="9_AFILIACION">9. Afiliación (CIBIR)</option>
+                <option value="Moroso">Moroso</option>
+                <option value="Suspendido">Suspendido</option>
+                <option value="Rechazado">Rechazado</option>
+              </optgroup>
             </select>
             <button
               onClick={load}
@@ -112,7 +128,7 @@ export default function AfiliadosPanel() {
           </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto divide-y divide-gray-50">
+        <div className="flex-1 overflow-y-auto scrollbar-hide divide-y divide-gray-50">
           {loading ? (
             <div className="p-4 text-center text-xs text-slate-400 font-semibold uppercase tracking-widest mt-10">Cargando...</div>
           ) : error ? (
@@ -130,8 +146,8 @@ export default function AfiliadosPanel() {
               >
                 <div className="flex items-center justify-between gap-2">
                   <span className="text-sm font-semibold truncate text-slate-800">{a.nombre_completo}</span>
-                  <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600">
-                    {a.estatus}
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600">
+                    {a.estatus.replace(/_/g, ' ')}
                   </span>
                 </div>
                 <span className="text-xs text-slate-400 truncate">{a.email}</span>
@@ -155,7 +171,7 @@ export default function AfiliadosPanel() {
             <p className="text-sm font-medium">Cargando detalle...</p>
           </div>
         ) : (
-          <div className="flex flex-col gap-4 p-4 sm:p-6 overflow-y-auto h-full">
+          <div className="flex flex-col gap-4 p-4 sm:p-6 overflow-y-auto scrollbar-hide h-full">
             <div className="bg-white rounded-2xl p-4 border border-gray-100">
               <div className="flex items-start justify-between gap-3 flex-wrap">
                 <div className="min-w-0">
@@ -187,22 +203,82 @@ export default function AfiliadosPanel() {
               </div>
             </div>
 
-            {selected.estatus === 'Preinscrito' && (
-              <div className="bg-white rounded-2xl p-4 border border-gray-100 flex gap-2">
-                <button
-                  onClick={() => procesar(selected.id_agremiado, 'aprobar')}
-                  className="flex-1 py-2.5 rounded-xl bg-[#00D084] text-white text-sm font-semibold hover:bg-[#00B870] transition-colors"
+            <div className="bg-white rounded-2xl p-4 border border-gray-100 flex flex-col gap-4">
+              <div className="flex flex-col gap-2">
+                <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Actualizar Estado del Proceso</span>
+                <select 
+                  value={selected.estatus}
+                  onChange={async (e) => {
+                    const newStatus = e.target.value;
+                    try {
+                      const res = await fetch(`${API_URL}/api/afiliados/${selected.id_agremiado}/estatus`, {
+                        method: 'PATCH',
+                        headers: { ...authHeaders, 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ estatus: newStatus })
+                      });
+                      if (res.ok) {
+                        await load();
+                        await loadDetail(selected.id_agremiado);
+                      }
+                    } catch (err) { console.error(err); }
+                  }}
+                  className="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-sm font-bold text-slate-700"
                 >
-                  ✓ Aprobar (CIBIR)
-                </button>
-                <button
-                  onClick={() => procesar(selected.id_agremiado, 'rechazar')}
-                  className="flex-1 py-2.5 rounded-xl bg-red-50 text-red-500 text-sm font-semibold hover:bg-red-100 transition-colors"
-                >
-                  ✗ Rechazar
-                </button>
+                  <option value="1_SOLICITUD">1. Solicitud de Afiliación</option>
+                  <option value="2_REQUISITOS">2. Requisitos</option>
+                  <option value="3_CONFIRMACION">3. Confirmación</option>
+                  <option value="4_RECEPCION">4. Recepción</option>
+                  <option value="5_ENTREVISTA">5. Entrevista</option>
+                  <option value="6_JUNTA_DIRECTIVA">6. Junta Directiva</option>
+                  <option value="7_RESULTADO">7. Resultado</option>
+                  <option value="8_FORMALIZACION">8. Formalización</option>
+                  <option value="9_AFILIACION">9. Afiliación (CIBIR)</option>
+                  <option value="Moroso">Moroso</option>
+                  <option value="Suspendido">Suspendido</option>
+                  <option value="Rechazado">Rechazado</option>
+                </select>
               </div>
-            )}
+
+              <div className="flex items-center gap-3 p-3 rounded-xl bg-slate-50 border border-slate-100">
+                <input 
+                  type="checkbox" 
+                  id="cibir_convalidado"
+                  checked={!!selected.cibir_convalidado}
+                  onChange={async (e) => {
+                    const val = e.target.checked;
+                    try {
+                      const res = await fetch(`${API_URL}/api/afiliados/${selected.id_agremiado}/estatus`, {
+                        method: 'PATCH',
+                        headers: { ...authHeaders, 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ cibir_convalidado: val })
+                      });
+                      if (res.ok) await loadDetail(selected.id_agremiado);
+                    } catch (err) { console.error(err); }
+                  }}
+                  className="w-4 h-4 rounded text-emerald-500 focus:ring-emerald-500"
+                />
+                <label htmlFor="cibir_convalidado" className="text-xs font-bold text-slate-600 cursor-pointer">
+                  Convalidar conocimientos CIBIR (Vía Entrevista)
+                </label>
+              </div>
+
+              {['1_SOLICITUD', '6_JUNTA_DIRECTIVA'].includes(selected.estatus) && (
+                <div className="flex gap-2 pt-2 border-t border-slate-50">
+                  <button
+                    onClick={() => procesar(selected.id_agremiado, 'aprobar')}
+                    className="flex-1 py-2.5 rounded-xl bg-[#00D084] text-white text-sm font-bold hover:bg-[#00B870] shadow-sm shadow-emerald-200 transition-all hover:-translate-y-0.5"
+                  >
+                    ✓ Aprobar (A Paso 7)
+                  </button>
+                  <button
+                    onClick={() => procesar(selected.id_agremiado, 'rechazar')}
+                    className="flex-1 py-2.5 rounded-xl bg-red-50 text-red-500 text-sm font-bold hover:bg-red-100 transition-colors"
+                  >
+                    ✗ Rechazar
+                  </button>
+                </div>
+              )}
+            </div>
 
             {error && (
               <div className="text-sm text-red-500 bg-red-50 border border-red-100 rounded-2xl p-4">{error}</div>

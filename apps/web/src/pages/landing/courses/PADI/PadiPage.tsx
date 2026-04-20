@@ -1,8 +1,8 @@
 import { useNavigate } from 'react-router-dom'
 import { useState } from 'react'
-import bgCaracas from '../../assets/Pzo.jpg'
-import Estudiosa from '../../assets/estudiosa1.png'
-import Estudioso from '../../assets/estudioso1.png'
+import bgCaracas from '@/assets/Pzo.jpg'
+import Estudiosa from '@/assets/estudiosa1.png'
+import Estudioso from '@/assets/estudioso1.png'
 import Navbar from '@/pages/landing/components/navbar/Navbar'
 import PreinscripcionProgramaForm from '@/pages/landing/components/PreinscripcionProgramaForm'
 import ProgramTimeline, { type ProgramModule } from '@/pages/landing/courses/components/ProgramTimeline'
@@ -22,7 +22,7 @@ export default function PadiPage() {
   const setRevealEstudioso = useScrollReveal()
 
   return (
-    <div className="min-h-screen w-full max-w-full overflow-x-hidden bg-[#022c22] text-white font-sans selection:bg-emerald-500/30 scroll-smooth">
+    <div className="w-full max-w-full bg-[#022c22] text-white font-sans selection:bg-emerald-500/30">
       <Navbar darkMode={darkMode} setDarkMode={setDarkMode} />
       <header
         className="relative px-4 sm:px-6 lg:px-20 py-20 lg:py-32 flex items-center justify-center min-h-[55vh] bg-cover animate-header-bg"

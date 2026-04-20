@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { User, IdCard, Mail, Phone, CheckCircle2, Loader2, AlertCircle } from 'lucide-react'
+import { User, Mail, CheckCircle2, Loader2, AlertCircle, Hash, ChevronDown } from 'lucide-react'
 import { API_URL } from '@/config/env'
 
 type ProgramaCodigo = 'PADI' | 'PEGI' | 'PREANI' | 'CIBIR' | 'AFILIACION'
@@ -7,27 +7,53 @@ type ProgramaCodigo = 'PADI' | 'PEGI' | 'PREANI' | 'CIBIR' | 'AFILIACION'
 interface Props {
   programaCodigo: ProgramaCodigo
   ctaLabel?: string
+  initialData?: Partial<{
+    nombreCompleto: string
+    email: string
+    telefono: string
+    cedulaRif: string
+  }>
 }
 
-const FIELDS = [
-  { name: 'nombreCompleto', label: 'Nombre Completo', type: 'text', placeholder: 'Ej. Carlos Mendoza', icon: User },
-  { name: 'cedulaRif', label: 'Cédula de Identidad o RIF', type: 'text', placeholder: 'V-00.000.000', icon: IdCard },
-  { name: 'email', label: 'Correo Electrónico', type: 'email', placeholder: 'usuario@ejemplo.com', icon: Mail },
-  { name: 'telefono', label: 'Teléfono de Contacto', type: 'tel', placeholder: '+58 4XX 0000000', icon: Phone },
-] as const
+const COUNTRIES = [
+  { code: '+58', flag: '🇻🇪', label: 'Venezuela' },
+  { code: '+57', flag: '🇨🇴', label: 'Colombia' },
+  { code: '+34', flag: '🇪🇸', label: 'España' },
+  { code: '+1',  flag: '🇺🇸', label: 'Estados Unidos' },
+  { code: '+507',flag: '🇵🇦', label: 'Panamá' },
+  { code: '+52', flag: '🇲🇽', label: 'México' },
+  { code: '+54', flag: '🇦🇷', label: 'Argentina' },
+  { code: '+56', flag: '🇨🇱', label: 'Chile' },
+  { code: '+51', flag: '🇵🇪', label: 'Perú' },
+  { code: '+593',flag: '🇪🇨', label: 'Ecuador' },
+  { code: '+1',  flag: '🇩🇴', label: 'Rep. Dominicana' },
+  { code: '+506',flag: '🇨🇷', label: 'Costa Rica' },
+  { code: '+502',flag: '🇬🇹', label: 'Guatemala' },
+  { code: '+504',flag: '🇭🇳', label: 'Honduras' },
+  { code: '+503',flag: '🇸🇻', label: 'El Salvador' },
+  { code: '+505',flag: '🇳🇮', label: 'Nicaragua' },
+  { code: '+595',flag: '🇵🇾', label: 'Paraguay' },
+  { code: '+598',flag: '🇺🇾', label: 'Uruguay' },
+  { code: '+591',flag: '🇧🇴', label: 'Bolivia' },
+  { code: '+1',  flag: '🇵🇷', label: 'Puerto Rico' },
+]
 
-export default function PreinscripcionProgramaForm({ programaCodigo, ctaLabel }: Props) {
+export default function PreinscripcionProgramaForm({ programaCodigo, ctaLabel, initialData }: Props) {
   const [formData, setFormData] = useState({
-    nombreCompleto: '',
-    cedulaRif: '',
-    email: '',
-    telefono: '',
+    nombreCompleto: initialData?.nombreCompleto || '',
+    cedulaPrefix: initialData?.cedulaRif?.split('-')[0] || 'V',
+    cedulaNumber: initialData?.cedulaRif?.split('-')[1] || '',
+    email: initialData?.email || '',
+    phonePrefix: '+58',
+    telefono: initialData?.telefono || '',
     nivelProfesional: '',
     esCorredorInmobiliario: '',
   })
   const [loading, setLoading] = useState(false)
   const [submitted, setSubmitted] = useState(false)
   const [errorMsg, setErrorMsg] = useState('')
+  const [showCountryDropdown, setShowCountryDropdown] = useState(false)
+
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target
@@ -36,18 +62,47 @@ export default function PreinscripcionProgramaForm({ programaCodigo, ctaLabel }:
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setLoading(true)
     setErrorMsg('')
+
+    // --- VALIDACIONES ---
+    const nombreTrim = formData.nombreCompleto.trim()
+    if (nombreTrim.length < 5 || !/^[a-zA-ZñÑáéíóúÁÉÍÓÚ\s]+$/.test(nombreTrim)) {
+      setErrorMsg('Por favor, ingresa un nombre completo válido (solo letras).')
+      return
+    }
+
+    const cedulaNum = formData.cedulaNumber.replace(/\D/g, '')
+    if (cedulaNum.length < 6 || cedulaNum.length > 12) {
+      setErrorMsg('El número de identificación debe tener entre 6 y 12 dígitos.')
+      return
+    }
+
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      setErrorMsg('Por favor, ingresa un correo electrónico válido.')
+      return
+    }
+
+    const phoneNum = formData.telefono.replace(/\D/g, '')
+    if (phoneNum.length < 7 || phoneNum.length > 15) {
+      setErrorMsg('Por favor, ingresa un número de teléfono válido.')
+      return
+    }
+
+    setLoading(true)
+    
+    const cedulaRif = `${formData.cedulaPrefix}-${cedulaNum}`
+    const phone = `${formData.phonePrefix}${phoneNum}`
+
     try {
       const res = await fetch(`${API_URL}/api/public/preinscripciones`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           programaCodigo,
-          nombreCompleto: formData.nombreCompleto,
-          cedulaRif: formData.cedulaRif,
+          nombreCompleto: nombreTrim,
+          cedulaRif,
           email: formData.email,
-          telefono: formData.telefono,
+          telefono: phone,
           nivelProfesional: formData.nivelProfesional,
           esCorredorInmobiliario: formData.esCorredorInmobiliario === 'si',
         }),
@@ -88,25 +143,142 @@ export default function PreinscripcionProgramaForm({ programaCodigo, ctaLabel }:
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {FIELDS.map(({ name, label, type, placeholder, icon: Icon }) => (
-          <div key={name} className="space-y-2">
-            <label className="text-[10px] font-black uppercase tracking-widest ml-1 text-emerald-100/90">
-              {label}
-            </label>
-            <div className="relative">
-              <Icon size={17} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
-              <input
-                type={type}
-                name={name}
-                required={name === 'cedulaRif' ? false : true}
-                value={(formData as any)[name] as string}
+        {/* Nombre Completo */}
+        <div className="space-y-2">
+          <label className="text-[10px] font-black uppercase tracking-widest ml-1 text-emerald-100/90">
+            Nombre Completo
+          </label>
+          <div className="group relative">
+            <User size={17} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-emerald-500 transition-colors" />
+            <input
+              type="text"
+              name="nombreCompleto"
+              required
+              value={formData.nombreCompleto}
+              onChange={handleChange}
+              placeholder="Ej. Carlos Mendoza"
+              className="w-full pl-12 pr-5 py-4 bg-white rounded-xl outline-none transition-all placeholder:text-slate-300 font-medium text-sm border border-slate-200 text-slate-800 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 shadow-sm"
+            />
+          </div>
+        </div>
+
+        {/* Cédula de Identidad o RIF */}
+        <div className="space-y-2">
+          <label className="text-[10px] font-black uppercase tracking-widest ml-1 text-emerald-100/90">
+            Cédula de Identidad o RIF
+          </label>
+          <div className="flex gap-0 group focus-within:ring-4 focus-within:ring-emerald-500/10 rounded-xl transition-all shadow-sm">
+            <div className="relative flex-shrink-0">
+              <select
+                name="cedulaPrefix"
+                value={formData.cedulaPrefix}
                 onChange={handleChange}
-                placeholder={placeholder}
-                className="w-full pl-12 pr-5 py-4 bg-white rounded-xl outline-none transition-all placeholder:text-slate-300 font-medium text-sm border border-slate-200 text-slate-800 focus:border-emerald-500"
+                className="h-full pl-4 pr-9 bg-slate-50 border-y border-l border-slate-200 rounded-l-xl outline-none transition-all font-bold text-sm text-slate-700 hover:bg-slate-100 appearance-none cursor-pointer"
+              >
+                {['V', 'E', 'J', 'G', 'P'].map(p => (
+                  <option key={p} value={p}>{p}</option>
+                ))}
+              </select>
+              <ChevronDown size={14} className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-slate-400" />
+            </div>
+            <div className="relative flex-1">
+              <Hash size={17} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-emerald-500 transition-colors" />
+              <input
+                type="text"
+                name="cedulaNumber"
+                required
+                value={formData.cedulaNumber}
+                onChange={handleChange}
+                placeholder="00000000"
+                className="w-full pl-12 pr-5 py-4 bg-white border border-slate-200 rounded-r-xl outline-none transition-all placeholder:text-slate-300 font-medium text-sm text-slate-800 focus:border-emerald-500"
               />
             </div>
           </div>
-        ))}
+        </div>
+
+        {/* Correo Electrónico */}
+        <div className="space-y-2">
+          <label className="text-[10px] font-black uppercase tracking-widest ml-1 text-emerald-100/90">
+            Correo Electrónico
+          </label>
+          <div className="group relative">
+            <Mail size={17} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-emerald-500 transition-colors" />
+            <input
+              type="email"
+              name="email"
+              required
+              value={formData.email}
+              onChange={handleChange}
+              placeholder="usuario@ejemplo.com"
+              className="w-full pl-12 pr-5 py-4 bg-white rounded-xl outline-none transition-all placeholder:text-slate-300 font-medium text-sm border border-slate-200 text-slate-800 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 shadow-sm"
+            />
+          </div>
+        </div>
+
+        {/* Teléfono de Contacto */}
+        <div className="space-y-2">
+          <label className="text-[10px] font-black uppercase tracking-widest ml-1 text-emerald-100/90">
+            Teléfono de Contacto
+          </label>
+          <div className="flex gap-0 group focus-within:ring-4 focus-within:ring-emerald-500/10 rounded-xl transition-all shadow-sm">
+            <div className="relative flex-shrink-0">
+              <button
+                type="button"
+                onClick={() => setShowCountryDropdown(!showCountryDropdown)}
+                className="h-full pl-4 pr-9 bg-slate-50 border-y border-l border-slate-200 rounded-l-xl outline-none transition-all font-bold text-sm text-slate-700 hover:bg-slate-100 flex items-center gap-2 min-w-[100px]"
+              >
+                <span className="text-lg">{COUNTRIES.find(c => c.code === formData.phonePrefix)?.flag}</span>
+                <span>{formData.phonePrefix}</span>
+                <ChevronDown size={14} className={`absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 transition-transform ${showCountryDropdown ? 'rotate-180' : ''}`} />
+              </button>
+
+              {showCountryDropdown && (
+                <>
+                  <div 
+                    className="fixed inset-0 z-40" 
+                    onClick={() => setShowCountryDropdown(false)}
+                  />
+                  <div className="absolute left-0 top-full mt-1 w-64 bg-white border border-slate-200 rounded-xl shadow-xl z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+                    <div className="max-h-48 overflow-y-auto py-1 scrollbar-thin scrollbar-thumb-slate-200">
+                      {COUNTRIES.map(c => (
+                        <button
+                          key={`${c.label}-${c.code}`}
+                          type="button"
+                          onClick={() => {
+                            setFormData(prev => ({ ...prev, phonePrefix: c.code }));
+                            setShowCountryDropdown(false);
+                          }}
+                          className={`w-full flex items-center gap-3 px-4 py-2.5 text-left hover:bg-emerald-50 transition-colors ${formData.phonePrefix === c.code ? 'bg-emerald-50/50' : ''}`}
+                        >
+                          <span className="text-xl">{c.flag}</span>
+                          <div className="flex flex-col">
+                            <span className="text-xs font-black text-slate-800 uppercase tracking-tight">{c.label}</span>
+                            <span className="text-xs font-bold text-emerald-600">{c.code}</span>
+                          </div>
+                          {formData.phonePrefix === c.code && (
+                            <CheckCircle2 size={14} className="ml-auto text-emerald-500" />
+                          )}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
+
+            <div className="relative flex-1">
+              <input
+                type="tel"
+                name="telefono"
+                required
+                value={formData.telefono}
+                onChange={handleChange}
+                placeholder="4XX 0000000"
+                className="w-full px-5 py-4 bg-white border border-slate-200 rounded-r-xl outline-none transition-all placeholder:text-slate-300 font-medium text-sm text-slate-800 focus:border-emerald-500"
+              />
+            </div>
+          </div>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -114,13 +286,13 @@ export default function PreinscripcionProgramaForm({ programaCodigo, ctaLabel }:
           <label className="text-[10px] font-black uppercase tracking-widest ml-1 text-emerald-100/90">
             Nivel Profesional
           </label>
-          <div className="relative">
+          <div className="relative group">
             <select
               name="nivelProfesional"
               required
               value={formData.nivelProfesional}
               onChange={handleChange}
-              className="w-full px-5 py-4 bg-white rounded-xl outline-none transition-all font-medium text-sm border border-slate-200 text-slate-800 focus:border-emerald-500 appearance-none"
+              className="w-full px-5 py-4 bg-white rounded-xl outline-none transition-all font-medium text-sm border border-slate-200 text-slate-800 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 appearance-none shadow-sm"
             >
               <option value="" disabled>
                 Selecciona una opción
@@ -129,7 +301,7 @@ export default function PreinscripcionProgramaForm({ programaCodigo, ctaLabel }:
               <option value="Universitario">Universitario</option>
               <option value="Postgrado">Postgrado</option>
             </select>
-            <span className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 text-xs">▼</span>
+            <ChevronDown size={16} className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-slate-400" />
           </div>
         </div>
 
@@ -137,7 +309,7 @@ export default function PreinscripcionProgramaForm({ programaCodigo, ctaLabel }:
           <label className="text-[10px] font-black uppercase tracking-widest ml-1 text-emerald-100/90">
             ¿Ya eres corredor inmobiliario?
           </label>
-          <div className="rounded-xl border border-slate-200 bg-white p-1">
+          <div className="rounded-xl border border-slate-200 bg-white p-1 shadow-sm">
             <div className="grid grid-cols-2 gap-1" role="radiogroup" aria-label="¿Ya eres corredor inmobiliario?">
               {[
                 { value: 'si', label: 'Sí' },
@@ -150,7 +322,7 @@ export default function PreinscripcionProgramaForm({ programaCodigo, ctaLabel }:
                     className={[
                       'h-[50px] rounded-lg cursor-pointer text-sm font-semibold flex items-center justify-center transition-all',
                       selected
-                        ? 'bg-emerald-600 text-white shadow-sm'
+                        ? 'bg-emerald-600 text-white shadow-md'
                         : 'text-slate-600 hover:bg-slate-50',
                     ].join(' ')}
                   >
@@ -193,4 +365,3 @@ export default function PreinscripcionProgramaForm({ programaCodigo, ctaLabel }:
     </form>
   )
 }
-

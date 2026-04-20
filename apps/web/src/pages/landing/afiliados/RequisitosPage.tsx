@@ -1,8 +1,8 @@
 import React, { useState } from "react";
-import bgCibir from "../assets/Pzo.jpg";
+import bgCibir from "@/assets/Pzo.jpg";
 import Navbar from '@/pages/landing/components/navbar/Navbar';
-import Estudiosa from "../assets/estudiosa1.png";
-import Estudioso from "../assets/estudioso1.png";
+import Estudiosa from "@/assets/estudiosa1.png";
+import Estudioso from "@/assets/estudioso1.png";
 import PreinscripcionProgramaForm from '@/pages/landing/components/PreinscripcionProgramaForm'
 
 export default function RequisitosPage() {

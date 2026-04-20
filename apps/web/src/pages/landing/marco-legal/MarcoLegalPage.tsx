@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
-import bgBolivar from '../assets/Pzo.jpg'
+import { useParams, Link } from 'react-router-dom'
+import bgBolivar from '@/assets/Pzo.jpg'
 import Navbar from '@/pages/landing/components/navbar/Navbar'
 import { API_URL } from '@/config/env'
 
@@ -17,11 +18,36 @@ function buildPdfPreviewUrl(url: string): string {
   return `${url}${separator}page=1&view=FitH&toolbar=0&navpanes=0&scrollbar=0`
 }
 
-export default function NormativasPage() {
+const CATEGORY_MAP: Record<string, { label: string; subtitle: string }> = {
+  'leyes-y-decretos': {
+    label: 'Leyes y Decretos',
+    subtitle: 'Marco legal nacional y regional de referencia',
+  },
+  'reglamentos-y-estatutos': {
+    label: 'Reglamentos y Estatutos',
+    subtitle: 'Normativa interna y estatutaria de la Cámara',
+  },
+  'normas-y-procedimientos': {
+    label: 'Normas y Procedimientos',
+    subtitle: 'Guías operativas y manuales de procedimiento',
+  },
+  'actas-de-asamblea': {
+    label: 'Actas de Asamblea',
+    subtitle: 'Registros oficiales de decisiones y acuerdos',
+  },
+}
+
+export default function MarcoLegalPage() {
+  const { category } = useParams<{ category: string }>()
   const [darkMode, setDarkMode] = useState(false)
   const [loading, setLoading] = useState(true)
   const [items, setItems] = useState<NormativaPublic[]>([])
   const [error, setError] = useState<string | null>(null)
+
+  const config = CATEGORY_MAP[category || ''] || {
+    label: 'Marco Legal',
+    subtitle: 'Documentos oficiales y normativas',
+  }
 
   useEffect(() => {
     let cancelled = false
@@ -29,12 +55,13 @@ export default function NormativasPage() {
       setLoading(true)
       setError(null)
       try {
-        const r = await fetch(`${API_URL}/api/public/normativas`)
+        const catValue = config.label
+        const r = await fetch(`${API_URL}/api/public/normativas?categoria=${encodeURIComponent(catValue)}`)
         const j = await r.json()
         if (!j.success) throw new Error(j.message || 'Error al cargar')
         if (!cancelled) setItems(Array.isArray(j.data) ? j.data : [])
       } catch (e) {
-        if (!cancelled) setError(e instanceof Error ? e.message : 'No se pudieron cargar las normativas.')
+        if (!cancelled) setError(e instanceof Error ? e.message : 'No se pudieron cargar los documentos.')
       } finally {
         if (!cancelled) setLoading(false)
       }
@@ -42,7 +69,7 @@ export default function NormativasPage() {
     return () => {
       cancelled = true
     }
-  }, [])
+  }, [category, config.label])
 
   return (
     <div className="min-h-screen bg-[#022c22] text-white font-sans selection:bg-emerald-500/30">
@@ -62,11 +89,11 @@ export default function NormativasPage() {
             Marco legal
           </p>
           <h1 className="text-4xl sm:text-5xl lg:text-7xl font-black tracking-tighter drop-shadow-lg">
-            Normativas{' '}
-            <span className="text-emerald-400 italic">y documentos</span>
+            {config.label}{' '}
+            <span className="text-emerald-400 italic">oficiales</span>
           </h1>
           <p className="text-emerald-100/80 text-xs md:text-sm tracking-widest uppercase font-medium">
-            Leyes, resoluciones y circulares de referencia
+            {config.subtitle}
           </p>
         </div>
       </header>
@@ -85,7 +112,7 @@ export default function NormativasPage() {
           </div>
         ) : items.length === 0 ? (
           <div className="max-w-xl mx-auto text-center py-16 px-4 rounded-3xl bg-white border border-slate-100 text-slate-500 text-sm">
-            Aún no hay normativas publicadas. Vuelve pronto.
+            Aún no hay documentos publicados en esta categoría. Vuelve pronto.
           </div>
         ) : (
           <div className="max-w-7xl mx-auto animate-in fade-in slide-in-from-bottom-8 duration-1000">
@@ -150,12 +177,12 @@ export default function NormativasPage() {
                   Los documentos se alojan en enlaces públicos gestionados por la Cámara. Para consultas específicas, contáctanos.
                 </p>
                 <div className="pt-4 md:pt-6">
-                  <a
-                    href="/contacto"
+                  <Link
+                    to="/direccion"
                     className="inline-block bg-emerald-500 text-[#022c22] w-full sm:w-auto px-8 py-4 md:px-12 md:py-5 rounded-full font-black text-xs md:text-sm uppercase tracking-[0.2em] hover:bg-white hover:scale-105 transition-all duration-300 shadow-[0_0_30px_-10px_rgba(16,185,129,0.5)] active:scale-95"
                   >
                     Contactar
-                  </a>
+                  </Link>
                 </div>
               </div>
             </div>

@@ -201,22 +201,18 @@ export default function PreinscripcionesPrincipalesPanel({
           </div>
 
           <div className="flex gap-2">
-            <div className="flex items-center gap-1.5 overflow-x-auto scrollbar-hide pb-1">
-              {(['Todos', 'AFILIACION', 'CIBIR', 'PADI', 'PEGI', 'PREANI'] as const).map(p => (
-                <button
-                  key={p}
-                  onClick={() => setPrograma(p)}
-                  className={[
-                    'text-[10px] font-bold px-3 py-1.5 rounded-full whitespace-nowrap transition-colors border',
-                    programa === p
-                      ? 'bg-[#00D084] border-[#00D084] text-white'
-                      : 'bg-white border-gray-200 text-slate-500 hover:bg-gray-50',
-                  ].join(' ')}
-                >
-                  {p}
-                </button>
-              ))}
-            </div>
+            <select
+              value={programa}
+              onChange={(e) => setPrograma(e.target.value as any)}
+              className="text-[10px] font-bold px-3 py-1.5 rounded-xl border border-gray-200 bg-white text-slate-600 outline-none focus:border-[#00D084] transition-all"
+            >
+              <option value="Todos">Todos los Programas</option>
+              <option value="AFILIACION">AFILIACION</option>
+              <option value="CIBIR">CIBIR</option>
+              <option value="PADI">PADI</option>
+              <option value="PEGI">PEGI</option>
+              <option value="PREANI">PREANI</option>
+            </select>
           </div>
 
           <div className="flex flex-wrap gap-1.5 mt-1">
@@ -238,7 +234,7 @@ export default function PreinscripcionesPrincipalesPanel({
           </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto divide-y divide-gray-50">
+        <div className="flex-1 overflow-y-auto scrollbar-hide divide-y divide-gray-50">
           {loading ? (
             <div className="p-4 text-center text-xs text-slate-400 font-semibold uppercase tracking-widest mt-10">Cargando...</div>
           ) : error ? (
@@ -272,7 +268,7 @@ export default function PreinscripcionesPrincipalesPanel({
 
       <div className={['flex-1 min-w-0 bg-gray-50', selected ? 'flex flex-col' : 'hidden sm:flex sm:flex-col'].join(' ')}>
         {selected ? (
-          <div className="flex flex-col gap-4 p-4 sm:p-6 overflow-y-auto h-full">
+          <div className="flex flex-col gap-4 p-4 sm:p-6 overflow-y-auto scrollbar-hide h-full">
             <button
               onClick={() => setSelected(null)}
               className="sm:hidden flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-slate-700 transition-colors self-start"
@@ -317,7 +313,8 @@ export default function PreinscripcionesPrincipalesPanel({
               </div>
             </div>
 
-            <div className="bg-white rounded-2xl p-4 border border-gray-100 flex flex-col gap-2">
+            {['Preinscrito', 'Entrevista'].includes(selected.estatus) && (
+              <div className="bg-white rounded-2xl p-4 border border-gray-100 flex flex-col gap-2">
               {selected.estatus === 'Preinscrito' && (
                 <div className="flex gap-2">
                   <button
@@ -359,7 +356,8 @@ export default function PreinscripcionesPrincipalesPanel({
                   </div>
                 </div>
               )}
-            </div>
+              </div>
+            )}
           </div>
         ) : (
           <div className="flex flex-col items-center justify-center h-full gap-3 text-slate-300">

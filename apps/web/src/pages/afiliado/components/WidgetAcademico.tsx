@@ -12,14 +12,59 @@ interface CursoDB {
   precio: string | null;
   imagen_url: string | null;
   estatus: string;
+  isFlagship?: boolean;
+  codigo?: string;
 }
+
+const FLAGSHIP_PROGRAMS: CursoDB[] = [
+  { 
+    id_curso: -1, 
+    nombre: 'PREANI', 
+    nivel_academico: 'Estudios Avanzados', 
+    precio: 'Consultar', 
+    imagen_url: 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&q=80&w=800', 
+    estatus: 'Activo',
+    isFlagship: true,
+    codigo: 'PREANI'
+  },
+  { 
+    id_curso: -2, 
+    nombre: 'PEGI', 
+    nivel_academico: 'Especialización', 
+    precio: 'Consultar', 
+    imagen_url: 'https://images.unsplash.com/photo-1454165833767-12469a92c90b?auto=format&fit=crop&q=80&w=800', 
+    estatus: 'Activo',
+    isFlagship: true,
+    codigo: 'PEGI'
+  },
+  { 
+    id_curso: -3, 
+    nombre: 'PADI', 
+    nivel_academico: 'Actualización', 
+    precio: 'Consultar', 
+    imagen_url: 'https://images.unsplash.com/photo-1589829545856-d10d557cf95f?auto=format&fit=crop&q=80&w=800', 
+    estatus: 'Activo',
+    isFlagship: true,
+    codigo: 'PADI'
+  },
+  { 
+    id_curso: -4, 
+    nombre: 'CIBIR Inducción', 
+    nivel_academico: 'Gremial', 
+    precio: 'Consultar', 
+    imagen_url: 'https://images.unsplash.com/photo-1557804506-669a67965ba0?auto=format&fit=crop&q=80&w=800', 
+    estatus: 'Activo',
+    isFlagship: true,
+    codigo: 'CIBIR'
+  }
+];
 
 interface WidgetAcademicoProps {
   onViewAll?: () => void;
-  limit?: number; // Add a limit prop for the maximum number of courses to display.
+  limit?: number;
 }
 
-const WidgetAcademico = ({ onViewAll, limit = 4 }: WidgetAcademicoProps) => { // default to 4 for widget usage
+const WidgetAcademico = ({ onViewAll, limit = 4 }: WidgetAcademicoProps) => {
   const [courses, setCourses] = useState<CursoDB[]>([]);
   const [loading, setLoading] = useState(true);
   const { user } = useAuth(); // Para obtener info básica y prellenar modal
@@ -29,11 +74,15 @@ const WidgetAcademico = ({ onViewAll, limit = 4 }: WidgetAcademicoProps) => { //
       .then((res) => res.json())
       .then((json) => {
         if (json.success) {
-          // Tomar máximo 'limit' para el widget o todos si limit es 0/-1
-          setCourses(limit > 0 ? json.data.slice(0, limit) : json.data);
+          const dynamicCourses = json.data;
+          // Combinar insignia con dinámicos, asegurando que los insignia aparezcan primero si es el widget pequeño
+          const combined = [...FLAGSHIP_PROGRAMS, ...dynamicCourses];
+          setCourses(limit > 0 ? combined.slice(0, limit) : combined);
         }
       })
-      .catch(console.error)
+      .catch(() => {
+        setCourses(FLAGSHIP_PROGRAMS);
+      })
       .finally(() => setLoading(false));
   }, [limit]);
 
@@ -65,14 +114,30 @@ const WidgetAcademico = ({ onViewAll, limit = 4 }: WidgetAcademicoProps) => { //
       }
     }).then((result) => {
       if (result.isConfirmed) {
-        // Enviar POST a API
-        fetch(`${API_URL}/api/public/cursos/${curso.id_curso}/preinscribir`, {
+        // Seleccionar endpoint según si es flagship o dinámico
+        const url = curso.isFlagship 
+          ? `${API_URL}/api/public/preinscripciones`
+          : `${API_URL}/api/public/cursos/${curso.id_curso}/preinscribir`;
+
+        const body = curso.isFlagship
+          ? {
+              programaCodigo: curso.codigo,
+              nombreCompleto: result.value.nombre,
+              email: result.value.email,
+              cedulaRif: '—', 
+              telefono: '—',
+              nivelProfesional: 'No especificado',
+              esCorredorInmobiliario: false
+            }
+          : {
+              nombreCompleto: result.value.nombre,
+              email: result.value.email
+            };
+
+        fetch(url, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            nombreCompleto: result.value.nombre,
-            email: result.value.email
-          })
+          body: JSON.stringify(body)
         })
         .then(res => res.json())
         .then(json => {

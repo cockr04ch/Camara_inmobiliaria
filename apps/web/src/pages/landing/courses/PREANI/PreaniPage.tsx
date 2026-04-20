@@ -1,10 +1,10 @@
 import { useNavigate } from 'react-router-dom'
 import { useState } from 'react'
-import bgPreani from '../../assets/Pzo.jpg'
-import logoPreani from '../../assets/Preani.jpg'
+import bgPreani from '@/assets/Pzo.jpg'
+import logoPreani from '@/assets/Preani.jpg'
 import Navbar from '@/pages/landing/components/navbar/Navbar'
-import Estudiosa from '../../assets/estudiosa1.png'
-import Estudioso from '../../assets/estudioso1.png'
+import Estudiosa from '@/assets/estudiosa1.png'
+import Estudioso from '@/assets/estudioso1.png'
 import PreinscripcionProgramaForm from '@/pages/landing/components/PreinscripcionProgramaForm'
 import ProgramTimeline, { type ProgramModule } from '@/pages/landing/courses/components/ProgramTimeline'
 import useScrollReveal from '@/pages/landing/courses/components/useScrollReveal'
@@ -25,7 +25,7 @@ export default function PreaniPage() {
   const setRevealEstudioso = useScrollReveal()
 
   return (
-    <div className="min-h-screen w-full max-w-full overflow-x-hidden bg-[#022c22] text-white font-sans selection:bg-emerald-500/30 scroll-smooth">
+    <div className="w-full max-w-full bg-[#022c22] text-white font-sans selection:bg-emerald-500/30">
       <Navbar darkMode={darkMode} setDarkMode={setDarkMode} />
 
       <header

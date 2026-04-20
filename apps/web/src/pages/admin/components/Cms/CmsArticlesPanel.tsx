@@ -1,22 +1,25 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react'
 import { NoticiasPanel } from '@/pages/admin/components/Cms/NoticiasPanel'
-import { ConveniosPanel } from '@/pages/admin/components/Cms/ConveniosPanel'
 import { DirectivaPanel } from '@/pages/admin/components/Cms/DirectivaPanel'
 import { ConfigPanel } from '@/pages/admin/components/Cms/ConfigPanel'
 import { PaginasPanel } from '@/pages/admin/components/Cms/PaginasPanel'
 import { NormativasPanel } from '@/pages/admin/components/Cms/NormativasPanel'
 import { LandingPreviewPane } from '@/pages/admin/components/Cms/LandingPreviewPane'
 
-export type CmsTab = 'noticias' | 'convenios' | 'normativas' | 'directiva' | 'config' | 'paginas'
+export type CmsTab = 'noticias' | 'normativas' | 'directiva' | 'config' | 'paginas' 
+  | 'leyes' | 'reglamentos' | 'normas' | 'actas'
 
 /** Maps each CMS tab to its relevant landing section anchor */
 const SECTION_ANCHORS: Record<CmsTab, string> = {
   noticias: '#noticias',
-  convenios: '#convenios',
   normativas: '',
   directiva: '#directiva',
   config: '',
   paginas: '',
+  leyes: '',
+  reglamentos: '',
+  normas: '',
+  actas: '',
 }
 
 const MIN_LEFT = 360   // px
@@ -149,8 +152,11 @@ export default function CmsArticlesPanel({ externalTab = 'config' }: { externalT
         {/* Tab content — key forces remount+animation on every tab switch */}
         <div key={externalTab} className="flex-1 overflow-hidden relative cms-fade-up">
           {externalTab === 'noticias' && <NoticiasPanel />}
-          {externalTab === 'convenios' && <ConveniosPanel />}
           {externalTab === 'normativas' && <NormativasPanel />}
+          {externalTab === 'leyes' && <NormativasPanel fixedCategory="Leyes y Decretos" />}
+          {externalTab === 'reglamentos' && <NormativasPanel fixedCategory="Reglamentos y Estatutos" />}
+          {externalTab === 'normas' && <NormativasPanel fixedCategory="Normas y Procedimientos" />}
+          {externalTab === 'actas' && <NormativasPanel fixedCategory="Actas de Asamblea" />}
           {externalTab === 'directiva' && <DirectivaPanel />}
         </div>
       </div>

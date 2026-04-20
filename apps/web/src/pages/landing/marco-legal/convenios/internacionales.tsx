@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import bgBolivar from "../../assets/Pzo.jpg";
+import bgBolivar from "@/assets/Pzo.jpg";
 import Navbar2 from "@/pages/landing/components/Navbar_sc";
 
 const CONVENIOS_INTERNACIONALES = [
