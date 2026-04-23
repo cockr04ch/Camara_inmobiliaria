@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { registerAfiliado, getAfiliados, getAfiliadoById, getMisCertificados, aprobarAfiliado, getSolicitudesCibir, rechazarAfiliado, verificarEmail, formalizarInscripcion, updateEstatusAfiliado, updateAfiliado } from '../controllers/afiliados.controller.js';
+import { registerAfiliado, getAfiliados, getAfiliadoById, getMisCertificados, aprobarAfiliado, getSolicitudesCibir, rechazarAfiliado, verificarEmail, formalizarInscripcion, updateEstatusAfiliado, updateAfiliado, generarInvitacionCorporativa, listarInvitacionesCorporativas, revocarInvitacionCorporativa, listarAfiliadosCorporativos, registrarMiembroDirecto } from '../controllers/afiliados.controller.js';
 import { requireAuth, requireRole } from '../middlewares/auth.middleware.js';
 
 const router = Router();
@@ -36,6 +36,22 @@ router.patch('/:id/aprobar', requireAuth, requireRole('admin', 'super_admin'), a
 
 // PATCH /api/afiliados/:id/rechazar
 router.patch('/:id/rechazar', requireAuth, requireRole('admin', 'super_admin'), rechazarAfiliado);
+
+// ── Invitaciones Corporativas ──────────────────────────────────────────────────
+// POST /api/afiliados/:id/invitacion — Genera link reutilizable (admin o afiliado corp)
+router.post('/:id/invitacion', requireAuth, generarInvitacionCorporativa);
+
+// GET /api/afiliados/:id/invitaciones — Lista links generados
+router.get('/:id/invitaciones', requireAuth, listarInvitacionesCorporativas);
+
+// DELETE /api/afiliados/:id/invitaciones/:tokenId — Revoca un link
+router.delete('/:id/invitaciones/:tokenId', requireAuth, requireRole('admin', 'super_admin'), revocarInvitacionCorporativa);
+
+// GET /api/afiliados/:id/afiliados-corp — Lista individuales vinculados a la empresa
+router.get('/:id/afiliados-corp', requireAuth, listarAfiliadosCorporativos);
+
+// POST /api/afiliados/:id/registrar-miembro — Registro directo por la empresa
+router.post('/:id/registrar-miembro', requireAuth, registrarMiembroDirecto);
 
 export { router as afiliadosRoutes };
 

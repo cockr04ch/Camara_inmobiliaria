@@ -20,14 +20,15 @@ import {
   FileText,
   UserPlus,
 } from 'lucide-react';
-import DashboardSidebar from '@/pages/afiliado/components/DashboardSidebar';
-import DashboardHeader from '@/pages/afiliado/components/DashboardHeader';
-import WidgetFinanciero from '@/pages/afiliado/components/WidgetFinanciero';
-import WidgetNotificaciones from '@/pages/afiliado/components/WidgetNotificaciones';
-import WidgetAcademico from '@/pages/afiliado/components/WidgetAcademico';
-import WidgetFormalizarInscripcion from '@/pages/afiliado/components/WidgetFormalizarInscripcion';
-import WidgetMisCertificados from '@/pages/afiliado/components/WidgetMisCertificados';
-import WidgetSolicitudAfiliacion from '@/pages/afiliado/components/WidgetSolicitudAfiliacion';
+import DashboardSidebar from '@/pages/landing/afiliado/components/DashboardSidebar';
+import DashboardHeader from '@/pages/landing/afiliado/components/DashboardHeader';
+import WidgetFinanciero from '@/pages/landing/afiliado/components/WidgetFinanciero';
+import WidgetNotificaciones from '@/pages/landing/afiliado/components/WidgetNotificaciones';
+import WidgetAcademico from '@/pages/landing/afiliado/components/WidgetAcademico';
+import WidgetFormalizarInscripcion from '@/pages/landing/afiliado/components/WidgetFormalizarInscripcion';
+import WidgetMisCertificados from '@/pages/landing/afiliado/components/WidgetMisCertificados';
+import WidgetSolicitudAfiliacion from '@/pages/landing/afiliado/components/WidgetSolicitudAfiliacion';
+import WidgetGestionAfiliadosCorp from '@/pages/landing/afiliado/components/WidgetGestionAfiliadosCorp';
 
 // Componentes Administrativos
 import UsersPanel from '@/pages/admin/components/Users/UsersPanel';
@@ -106,6 +107,8 @@ const PanelPage = () => {
     codigo_cibir: string | null;
     estatus: string;
     inscripcion_pagada: number;
+    tipo_afiliado?: string;
+    razon_social?: string;
   } | null>(null);
 
   const fetchAgremiado = () => {
@@ -148,6 +151,11 @@ const PanelPage = () => {
         { icon: Award, label: 'Mis Certificados' },
         { icon: UserPlus, label: 'Solicitud de Afiliación' },
       ];
+    }
+    
+    // Si es corporativo, agregar pestaña de gestión
+    if (agremiado?.tipo_afiliado === 'Juridico') {
+      baseItems.push({ icon: Users, label: 'Mis Afiliados' });
     }
 
     if (isAdmin) {
@@ -209,6 +217,7 @@ const PanelPage = () => {
     }
     if (activeTab === 'Sistema de Denuncias') return <Section label="Sistema de Denuncias" />;
     if (activeTab === 'Solicitud de Afiliación') return <div className="col-span-1 lg:col-span-3"><WidgetSolicitudAfiliacion /></div>;
+    if (activeTab === 'Mis Afiliados') return <div className="col-span-1 lg:col-span-3"><WidgetGestionAfiliadosCorp /></div>;
 
     // 2. Sección Administrativa
     if (!isAdmin) return null;

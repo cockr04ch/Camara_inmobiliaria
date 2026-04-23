@@ -1,6 +1,6 @@
 import React from 'react';
 import { UserPlus, ShieldCheck } from 'lucide-react';
-import DashboardCard from '@/pages/afiliado/components/DashboardCard';
+import DashboardCard from '@/pages/landing/afiliado/components/DashboardCard';
 import PreinscripcionProgramaForm from '@/pages/landing/components/PreinscripcionProgramaForm';
 import { useAuth } from '@/context/AuthContext';
 

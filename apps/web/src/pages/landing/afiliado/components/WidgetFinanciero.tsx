@@ -1,6 +1,6 @@
 import React from 'react';
 import { CreditCard, Download } from 'lucide-react';
-import DashboardCard from '@/pages/afiliado/components/DashboardCard';
+import DashboardCard from '@/pages/landing/afiliado/components/DashboardCard';
 import { SkeletonWidget } from '@/components/Skeleton';
 
 interface WidgetFinancieroProps {

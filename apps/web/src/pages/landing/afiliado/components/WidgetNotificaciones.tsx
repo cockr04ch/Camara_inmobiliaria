@@ -1,6 +1,6 @@
 import React from 'react';
 import { Bell, AlertTriangle, Gavel } from 'lucide-react';
-import DashboardCard from '@/pages/afiliado/components/DashboardCard';
+import DashboardCard from '@/pages/landing/afiliado/components/DashboardCard';
 import { SkeletonNotification } from '@/components/Skeleton';
 
 interface Notification {

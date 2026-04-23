@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { User, Mail, CheckCircle2, Loader2, AlertCircle, Hash, ChevronDown } from 'lucide-react'
+import { User, Mail, CheckCircle2, Loader2, AlertCircle, ChevronDown, GraduationCap, School, Award, Briefcase, Check, Building2, UserCheck, ArrowRight, Info } from 'lucide-react'
 import { API_URL } from '@/config/env'
 
 type ProgramaCodigo = 'PADI' | 'PEGI' | 'PREANI' | 'CIBIR' | 'AFILIACION'
@@ -40,34 +40,40 @@ const COUNTRIES = [
   { code: '+1',  flag: '🇵🇷', label: 'Puerto Rico' },
 ]
 
+const NIVELES = [
+  { value: 'Bachiller', label: 'Bachiller', icon: School },
+  { value: 'TSU', label: 'Técnico Superior (TSU)', icon: Briefcase },
+  { value: 'Universitario', label: 'Universitario', icon: GraduationCap },
+  { value: 'Postgrado', label: 'Postgrado / Especialización', icon: Award },
+]
+
+const BOX_H = "h-[58px]"
+
 export default function PreinscripcionProgramaForm({ programaCodigo, ctaLabel, initialData }: Props) {
-  // Función para extraer el prefijo del país del teléfono (ej: +58424... -> +58)
-  const extractPhone = (phone: string | undefined) => {
-    if (!phone) return { prefix: '+58', number: '' }
-    const country = COUNTRIES.find(c => phone.startsWith(c.code))
-    if (country) {
-      return { prefix: country.code, number: phone.slice(country.code.length) }
-    }
-    return { prefix: '+58', number: phone }
-  }
-
-  const phoneData = extractPhone(initialData?.telefono)
-
   const [formData, setFormData] = useState({
+    // Campos Natural
     nombreCompleto: initialData?.nombreCompleto || '',
     cedulaPrefix: initialData?.cedulaRif?.includes('-') ? initialData.cedulaRif.split('-')[0] : 'V',
     cedulaNumber: initialData?.cedulaRif?.includes('-') ? initialData.cedulaRif.split('-')[1] : (initialData?.cedulaRif || ''),
     email: initialData?.email || '',
-    phonePrefix: phoneData.prefix,
-    telefono: phoneData.number,
+    phonePrefix: '+58',
+    telefono: '',
     nivelProfesional: initialData?.nivelProfesional || '',
     esCorredorInmobiliario: initialData?.esCorredorInmobiliario === true ? 'si' : initialData?.esCorredorInmobiliario === false ? 'no' : '',
+    // Campos exclusivos Corporativo
+    razonSocial: '',
+    rifPrefix: 'J',
+    rifNumber: '',
+    representanteLegal: '',
+    emailEmpresa: '',
   })
+  const [tipoAfiliado, setTipoAfiliado] = useState<'Natural' | 'Juridico'>('Natural')
+  const isJuridico = programaCodigo === 'AFILIACION' && tipoAfiliado === 'Juridico'
   const [loading, setLoading] = useState(false)
   const [submitted, setSubmitted] = useState(false)
   const [errorMsg, setErrorMsg] = useState('')
   const [showCountryDropdown, setShowCountryDropdown] = useState(false)
-
+  const [showNivelDropdown, setShowNivelDropdown] = useState(false)
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target
@@ -78,57 +84,45 @@ export default function PreinscripcionProgramaForm({ programaCodigo, ctaLabel, i
     e.preventDefault()
     setErrorMsg('')
 
-    // --- VALIDACIONES ---
-    const nombreTrim = formData.nombreCompleto.trim()
-    if (nombreTrim.length < 5 || !/^[a-zA-ZñÑáéíóúÁÉÍÓÚ\s]+$/.test(nombreTrim)) {
-      setErrorMsg('Por favor, ingresa un nombre completo válido (solo letras).')
-      return
-    }
-
-    const cedulaNum = formData.cedulaNumber.replace(/\D/g, '')
-    if (cedulaNum.length < 6 || cedulaNum.length > 12) {
-      setErrorMsg('El número de identificación debe tener entre 6 y 12 dígitos.')
-      return
-    }
-
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      setErrorMsg('Por favor, ingresa un correo electrónico válido.')
-      return
-    }
-
-    const phoneNum = formData.telefono.replace(/\D/g, '')
-    if (phoneNum.length < 7 || phoneNum.length > 15) {
-      setErrorMsg('Por favor, ingresa un número de teléfono válido.')
+    // Para Natural: validar nivel profesional
+    if (!isJuridico && !formData.nivelProfesional) {
+      setErrorMsg('Por favor, selecciona tu nivel profesional.')
       return
     }
 
     setLoading(true)
-    
-    const cedulaRif = `${formData.cedulaPrefix}-${cedulaNum}`
-    const phone = `${formData.phonePrefix}${phoneNum}`
-
     try {
+      const body = isJuridico
+        ? {
+            programaCodigo,
+            tipoAfiliado: 'Juridico',
+            nombreCompleto: formData.razonSocial.trim(),
+            cedulaRif: `${formData.rifPrefix}-${formData.rifNumber.replace(/\D/g, '')}`,
+            email: formData.emailEmpresa,
+            telefono: `${formData.phonePrefix}${formData.telefono.replace(/\D/g, '')}`,
+            representanteLegal: formData.representanteLegal.trim(),
+          }
+        : {
+            programaCodigo,
+            tipoAfiliado: 'Natural',
+            nombreCompleto: formData.nombreCompleto.trim(),
+            cedulaRif: `${formData.cedulaPrefix}-${formData.cedulaNumber.replace(/\D/g, '')}`,
+            email: formData.email,
+            telefono: `${formData.phonePrefix}${formData.telefono.replace(/\D/g, '')}`,
+            nivelProfesional: formData.nivelProfesional,
+            esCorredorInmobiliario: formData.esCorredorInmobiliario === 'si',
+          }
+
       const res = await fetch(`${API_URL}/api/public/preinscripciones`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          programaCodigo,
-          nombreCompleto: nombreTrim,
-          cedulaRif,
-          email: formData.email,
-          telefono: phone,
-          nivelProfesional: formData.nivelProfesional,
-          esCorredorInmobiliario: formData.esCorredorInmobiliario === 'si',
-        }),
+        body: JSON.stringify(body),
       })
       const json = await res.json()
-      if (!res.ok || !json.success) {
-        throw new Error(json.message || 'No se pudo registrar la preinscripción')
-      }
+      if (!res.ok || !json.success) throw new Error(json.message || 'Error al registrar')
       setSubmitted(true)
-    } catch (err: unknown) {
-      const e = err as Error
-      setErrorMsg(e.message || 'Ocurrió un error inesperado.')
+    } catch (err: any) {
+      setErrorMsg(err.message)
     } finally {
       setLoading(false)
     }
@@ -137,141 +131,205 @@ export default function PreinscripcionProgramaForm({ programaCodigo, ctaLabel, i
   if (submitted) {
     return (
       <div className="py-10 flex flex-col items-center text-center space-y-5">
-        <div className="w-16 h-16 rounded-full flex items-center justify-center bg-emerald-50">
-          <CheckCircle2 size={34} className="text-emerald-500" />
+        <div className="w-16 h-16 rounded-full flex items-center justify-center bg-emerald-50 text-emerald-500">
+          <CheckCircle2 size={34} />
         </div>
-        <h3 className="text-2xl font-black text-white">¡Revisa tu correo!</h3>
-        <p className="text-sm max-w-md leading-relaxed text-emerald-100/85">
-          Te enviamos un enlace de confirmación para validar tu email y completar la preinscripción al programa <span className="font-bold">{programaCodigo}</span>.
+        <h3 className="text-2xl font-black text-white uppercase tracking-tighter">
+          {isJuridico ? '¡Empresa Registrada!' : '¡Paso 1 Completado!'}
+        </h3>
+        <p className="text-sm text-emerald-100/80 max-w-sm leading-relaxed">
+          {isJuridico
+            ? <>Revisaremos la solicitud de <span className="font-bold text-white">{formData.razonSocial}</span>. Una vez aprobada, podrás invitar a tus afiliados por correo.</>
+            : <>Revisa tu bandeja de entrada en <span className="font-bold text-white">{formData.email}</span>. Te enviamos un enlace para continuar con los documentos.</>
+          }
         </p>
-        <button
-          onClick={() => setSubmitted(false)}
-          className="text-sm font-bold underline transition-colors text-emerald-300 hover:text-emerald-200"
-        >
-          Enviar otra solicitud
-        </button>
       </div>
     )
   }
 
+  const selectedNivel = NIVELES.find(n => n.value === formData.nivelProfesional)
+
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Nombre Completo */}
-        <div className="space-y-2">
-          <label className="text-[10px] font-black uppercase tracking-widest ml-1 text-emerald-100/90">
-            Nombre Completo
-          </label>
-          <div className="group relative">
-            <User size={17} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-emerald-500 transition-colors" />
-            <input
-              type="text"
-              name="nombreCompleto"
-              required
-              value={formData.nombreCompleto}
-              onChange={handleChange}
-              placeholder="Ej. Carlos Mendoza"
-              className="w-full pl-12 pr-5 py-4 bg-white rounded-xl outline-none transition-all placeholder:text-slate-300 font-medium text-sm border border-slate-200 text-slate-800 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 shadow-sm"
-            />
-          </div>
-        </div>
+    <div className="pb-10">
+      <form onSubmit={handleSubmit} className="space-y-6">
 
-        {/* Cédula de Identidad o RIF */}
-        <div className="space-y-2">
-          <label className="text-[10px] font-black uppercase tracking-widest ml-1 text-emerald-100/90">
-            Cédula de Identidad o RIF
-          </label>
-          <div className="flex gap-0 group focus-within:ring-4 focus-within:ring-emerald-500/10 rounded-xl transition-all shadow-sm">
-            <div className="relative flex-shrink-0">
-              <select
-                name="cedulaPrefix"
-                value={formData.cedulaPrefix}
-                onChange={handleChange}
-                className="h-full pl-4 pr-9 bg-slate-50 border-y border-l border-slate-200 rounded-l-xl outline-none transition-all font-bold text-sm text-slate-700 hover:bg-slate-100 appearance-none cursor-pointer"
-              >
-                {['V', 'E', 'J', 'G', 'P'].map(p => (
-                  <option key={p} value={p}>{p}</option>
-                ))}
-              </select>
-              <ChevronDown size={14} className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-slate-400" />
-            </div>
-            <div className="relative flex-1">
-              <Hash size={17} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-emerald-500 transition-colors" />
-              <input
-                type="text"
-                name="cedulaNumber"
-                required
-                value={formData.cedulaNumber}
-                onChange={handleChange}
-                placeholder="00000000"
-                className="w-full pl-12 pr-5 py-4 bg-white border border-slate-200 rounded-r-xl outline-none transition-all placeholder:text-slate-300 font-medium text-sm text-slate-800 focus:border-emerald-500"
-              />
+        {/* Selector Tipo Afiliado */}
+        {programaCodigo === 'AFILIACION' && (
+          <div className="space-y-2">
+            <label className="text-[10px] font-black uppercase tracking-widest ml-1 text-emerald-100/60">Tipo de Afiliación</label>
+            <div className="grid grid-cols-2 gap-2 bg-white/5 p-1 rounded-xl border border-white/10 h-[52px]">
+              {([
+                { val: 'Natural', label: 'Independiente', icon: User },
+                { val: 'Juridico', label: 'Corporativo', icon: Building2 },
+              ] as const).map(({ val, label, icon: Icon }) => (
+                <button
+                  key={val}
+                  type="button"
+                  onClick={() => setTipoAfiliado(val)}
+                  className={`h-full rounded-lg text-[10px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2 ${
+                    tipoAfiliado === val ? 'bg-emerald-500 text-white shadow-lg' : 'text-white/40 hover:text-white hover:bg-white/5'
+                  }`}
+                >
+                  <Icon size={13} />
+                  {label}
+                </button>
+              ))}
             </div>
           </div>
-        </div>
+        )}
 
-        {/* Correo Electrónico */}
-        <div className="space-y-2">
-          <label className="text-[10px] font-black uppercase tracking-widest ml-1 text-emerald-100/90">
-            Correo Electrónico
-          </label>
-          <div className="group relative">
-            <Mail size={17} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-emerald-500 transition-colors" />
-            <input
-              type="email"
-              name="email"
-              required
-              value={formData.email}
-              onChange={handleChange}
-              placeholder="usuario@ejemplo.com"
-              className="w-full pl-12 pr-5 py-4 bg-white rounded-xl outline-none transition-all placeholder:text-slate-300 font-medium text-sm border border-slate-200 text-slate-800 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 shadow-sm"
-            />
+        {/* ══════════════════════════════════
+            FORMULARIO CORPORATIVO
+        ══════════════════════════════════ */}
+        {isJuridico && (
+          <>
+            {/* Banner informativo corporativo */}
+            <div className="flex gap-3 p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20">
+              <Info size={16} className="text-emerald-400 mt-0.5 shrink-0" />
+              <p className="text-[11px] leading-relaxed text-emerald-100/80">
+                <span className="font-black text-emerald-300 block mb-0.5 uppercase tracking-wide">Flujo Corporativo</span>
+                Registra tu empresa primero. Una vez aprobada por la Cámara, recibirás un enlace para invitar a tus afiliados individuales.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Razón Social */}
+              <div className="space-y-2 md:col-span-2">
+                <label className="text-[10px] font-black uppercase tracking-widest ml-1 text-emerald-100/60">Razón Social</label>
+                <div className="relative group">
+                  <Building2 size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-emerald-500 transition-colors" />
+                  <input type="text" name="razonSocial" required value={formData.razonSocial} onChange={handleChange} placeholder="Ej. Inversiones Mendoza, C.A." className={`w-full pl-11 pr-5 ${BOX_H} bg-white rounded-xl outline-none border border-slate-200 text-slate-800 focus:border-emerald-500 shadow-sm text-sm font-medium`} />
+                </div>
+              </div>
+
+              {/* RIF Empresa */}
+              <div className="space-y-2">
+                <label className="text-[10px] font-black uppercase tracking-widest ml-1 text-emerald-100/60">RIF de la Empresa</label>
+                <div className={`flex border border-slate-200 rounded-xl overflow-hidden focus-within:border-emerald-500 shadow-sm ${BOX_H}`}>
+                  <select name="rifPrefix" value={formData.rifPrefix} onChange={handleChange} className="bg-slate-50 border-r border-slate-200 px-4 h-full text-sm font-black text-slate-700 outline-none">
+                    {['J', 'G', 'C'].map(p => <option key={p} value={p}>{p}</option>)}
+                  </select>
+                  <input type="text" name="rifNumber" required value={formData.rifNumber} onChange={handleChange} placeholder="000000000" className="flex-1 px-5 h-full bg-white outline-none text-sm font-medium text-slate-800" />
+                </div>
+              </div>
+
+              {/* Email Empresa */}
+              <div className="space-y-2">
+                <label className="text-[10px] font-black uppercase tracking-widest ml-1 text-emerald-100/60">Correo Corporativo</label>
+                <div className="relative group">
+                  <Mail size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-emerald-500 transition-colors" />
+                  <input type="email" name="emailEmpresa" required value={formData.emailEmpresa} onChange={handleChange} placeholder="info@empresa.com" className={`w-full pl-11 pr-5 ${BOX_H} bg-white rounded-xl outline-none border border-slate-200 text-slate-800 focus:border-emerald-500 shadow-sm text-sm font-medium`} />
+                </div>
+              </div>
+
+              {/* Representante Legal */}
+              <div className="space-y-2 md:col-span-2">
+                <label className="text-[10px] font-black uppercase tracking-widest ml-1 text-emerald-100/60">Nombre del Representante Legal</label>
+                <div className="relative group">
+                  <UserCheck size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-emerald-500 transition-colors" />
+                  <input type="text" name="representanteLegal" required value={formData.representanteLegal} onChange={handleChange} placeholder="Ej. Carlos Mendoza" className={`w-full pl-11 pr-5 ${BOX_H} bg-white rounded-xl outline-none border border-slate-200 text-slate-800 focus:border-emerald-500 shadow-sm text-sm font-medium`} />
+                </div>
+              </div>
+
+              {/* Teléfono */}
+              <div className="space-y-2 md:col-span-2">
+                <label className="text-[10px] font-black uppercase tracking-widest ml-1 text-emerald-100/60">Teléfono de Contacto</label>
+                <div className={`flex border border-slate-200 rounded-xl overflow-hidden focus-within:border-emerald-500 shadow-sm ${BOX_H}`}>
+                  <button type="button" onClick={() => setShowCountryDropdown(!showCountryDropdown)} className="bg-slate-50 border-r border-slate-200 px-4 h-full flex items-center gap-2 text-sm font-black text-slate-700">
+                    <span>{COUNTRIES.find(c => c.code === formData.phonePrefix)?.flag}</span>
+                    <span>{formData.phonePrefix}</span>
+                  </button>
+                  <input type="tel" name="telefono" required value={formData.telefono} onChange={handleChange} placeholder="4XX 0000000" className="flex-1 px-5 h-full bg-white outline-none text-sm font-medium text-slate-800" />
+                </div>
+              </div>
+            </div>
+          </>
+        )}
+
+        {/* ══════════════════════════════════
+            FORMULARIO INDEPENDIENTE (Natural o no-Afiliacion)
+        ══════════════════════════════════ */}
+        {!isJuridico && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Nombre */}
+            <div className="space-y-2">
+              <label className="text-[10px] font-black uppercase tracking-widest ml-1 text-emerald-100/60">Nombre Completo</label>
+              <div className="relative group">
+                <User size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-emerald-500 transition-colors" />
+                <input type="text" name="nombreCompleto" required value={formData.nombreCompleto} onChange={handleChange} placeholder="Ej. Carlos Mendoza" className={`w-full pl-11 pr-5 ${BOX_H} bg-white rounded-xl outline-none border border-slate-200 text-slate-800 focus:border-emerald-500 shadow-sm text-sm font-medium`} />
+              </div>
+            </div>
+
+            {/* Cédula */}
+            <div className="space-y-2">
+              <label className="text-[10px] font-black uppercase tracking-widest ml-1 text-emerald-100/60">Cédula de Identidad</label>
+              <div className={`flex border border-slate-200 rounded-xl overflow-hidden focus-within:border-emerald-500 shadow-sm ${BOX_H}`}>
+                <select name="cedulaPrefix" value={formData.cedulaPrefix} onChange={handleChange} className="bg-slate-50 border-r border-slate-200 px-4 h-full text-sm font-black text-slate-700 outline-none">
+                  {['V', 'E'].map(p => <option key={p} value={p}>{p}</option>)}
+                </select>
+                <input type="text" name="cedulaNumber" required value={formData.cedulaNumber} onChange={handleChange} placeholder="00000000" className="flex-1 px-5 h-full bg-white outline-none text-sm font-medium text-slate-800" />
+              </div>
+            </div>
+
+            {/* Email */}
+            <div className="space-y-2">
+              <label className="text-[10px] font-black uppercase tracking-widest ml-1 text-emerald-100/60">Correo Electrónico</label>
+              <div className="relative group">
+                <Mail size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-emerald-500 transition-colors" />
+                <input type="email" name="email" required value={formData.email} onChange={handleChange} placeholder="usuario@ejemplo.com" className={`w-full pl-11 pr-5 ${BOX_H} bg-white rounded-xl outline-none border border-slate-200 text-slate-800 focus:border-emerald-500 shadow-sm text-sm font-medium`} />
+              </div>
+            </div>
+
+            {/* Teléfono */}
+            <div className="space-y-2">
+              <label className="text-[10px] font-black uppercase tracking-widest ml-1 text-emerald-100/60">Teléfono</label>
+              <div className={`flex border border-slate-200 rounded-xl overflow-hidden focus-within:border-emerald-500 shadow-sm ${BOX_H}`}>
+                <button type="button" onClick={() => setShowCountryDropdown(!showCountryDropdown)} className="bg-slate-50 border-r border-slate-200 px-4 h-full flex items-center gap-2 text-sm font-black text-slate-700">
+                  <span>{COUNTRIES.find(c => c.code === formData.phonePrefix)?.flag}</span>
+                  <span>{formData.phonePrefix}</span>
+                </button>
+                <input type="tel" name="telefono" required value={formData.telefono} onChange={handleChange} placeholder="4XX 0000000" className="flex-1 px-5 h-full bg-white outline-none text-sm font-medium text-slate-800" />
+              </div>
+            </div>
           </div>
-        </div>
+        )}
 
-        {/* Teléfono de Contacto */}
-        <div className="space-y-2">
-          <label className="text-[10px] font-black uppercase tracking-widest ml-1 text-emerald-100/90">
-            Teléfono de Contacto
-          </label>
-          <div className="flex gap-0 group focus-within:ring-4 focus-within:ring-emerald-500/10 rounded-xl transition-all shadow-sm">
-            <div className="relative flex-shrink-0">
+        {/* NIVEL PROFESIONAL + CORREDOR — Solo para no-corporativos */}
+        {!isJuridico && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
+            {/* Dropdown Custom Nivel */}
+            <div className="space-y-2 relative">
+              <label className="text-[10px] font-black uppercase tracking-widest ml-1 text-emerald-100/60">Nivel Profesional</label>
               <button
                 type="button"
-                onClick={() => setShowCountryDropdown(!showCountryDropdown)}
-                className="h-full pl-4 pr-9 bg-slate-50 border-y border-l border-slate-200 rounded-l-xl outline-none transition-all font-bold text-sm text-slate-700 hover:bg-slate-100 flex items-center gap-2 min-w-[100px]"
+                onClick={() => setShowNivelDropdown(!showNivelDropdown)}
+                className={`w-full px-4 ${BOX_H} bg-white rounded-xl border transition-all flex items-center justify-between group shadow-sm ${
+                  showNivelDropdown ? 'border-emerald-500 ring-4 ring-emerald-500/10' : 'border-slate-200 hover:border-emerald-400'
+                }`}
               >
-                <span className="text-lg">{COUNTRIES.find(c => c.code === formData.phonePrefix)?.flag}</span>
-                <span>{formData.phonePrefix}</span>
-                <ChevronDown size={14} className={`absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 transition-transform ${showCountryDropdown ? 'rotate-180' : ''}`} />
+                <div className="flex items-center gap-3">
+                  <div className={`w-9 h-9 rounded-lg flex items-center justify-center transition-colors ${selectedNivel ? 'bg-emerald-50 text-emerald-600' : 'bg-slate-50 text-slate-400 group-hover:text-emerald-500'}`}>
+                    {selectedNivel ? <selectedNivel.icon size={18} /> : <Briefcase size={18} />}
+                  </div>
+                  <span className={`text-sm font-bold ${selectedNivel ? 'text-slate-800' : 'text-slate-300'}`}>
+                    {selectedNivel ? selectedNivel.label : 'Selecciona una opción'}
+                  </span>
+                </div>
+                <ChevronDown size={18} className={`text-slate-400 transition-transform duration-300 ${showNivelDropdown ? 'rotate-180 text-emerald-500' : ''}`} />
               </button>
 
-              {showCountryDropdown && (
+              {showNivelDropdown && (
                 <>
-                  <div 
-                    className="fixed inset-0 z-40" 
-                    onClick={() => setShowCountryDropdown(false)}
-                  />
-                  <div className="absolute left-0 top-full mt-1 w-64 bg-white border border-slate-200 rounded-xl shadow-xl z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-                    <div className="max-h-48 overflow-y-auto py-1 scrollbar-thin scrollbar-thumb-slate-200">
-                      {COUNTRIES.map(c => (
-                        <button
-                          key={`${c.label}-${c.code}`}
-                          type="button"
-                          onClick={() => {
-                            setFormData(prev => ({ ...prev, phonePrefix: c.code }));
-                            setShowCountryDropdown(false);
-                          }}
-                          className={`w-full flex items-center gap-3 px-4 py-2.5 text-left hover:bg-emerald-50 transition-colors ${formData.phonePrefix === c.code ? 'bg-emerald-50/50' : ''}`}
-                        >
-                          <span className="text-xl">{c.flag}</span>
-                          <div className="flex flex-col">
-                            <span className="text-xs font-black text-slate-800 uppercase tracking-tight">{c.label}</span>
-                            <span className="text-xs font-bold text-emerald-600">{c.code}</span>
+                  <div className="fixed inset-0 z-40" onClick={() => setShowNivelDropdown(false)} />
+                  <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-slate-200 rounded-2xl shadow-2xl z-50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
+                    <div className="p-1.5 space-y-1">
+                      {NIVELES.map(n => (
+                        <button key={n.value} type="button" onClick={() => { setFormData(prev => ({ ...prev, nivelProfesional: n.value })); setShowNivelDropdown(false) }} className={`w-full flex items-center justify-between px-4 h-[50px] rounded-xl transition-all ${formData.nivelProfesional === n.value ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-600/20' : 'text-slate-600 hover:bg-emerald-50 hover:text-emerald-700'}`}>
+                          <div className="flex items-center gap-3">
+                            <n.icon size={18} className={formData.nivelProfesional === n.value ? 'text-white' : 'text-slate-400'} />
+                            <span className="text-xs font-black uppercase tracking-tight">{n.label}</span>
                           </div>
-                          {formData.phonePrefix === c.code && (
-                            <CheckCircle2 size={14} className="ml-auto text-emerald-500" />
-                          )}
+                          {formData.nivelProfesional === n.value && <Check size={16} />}
                         </button>
                       ))}
                     </div>
@@ -280,102 +338,53 @@ export default function PreinscripcionProgramaForm({ programaCodigo, ctaLabel, i
               )}
             </div>
 
-            <div className="relative flex-1">
-              <input
-                type="tel"
-                name="telefono"
-                required
-                value={formData.telefono}
-                onChange={handleChange}
-                placeholder="4XX 0000000"
-                className="w-full px-5 py-4 bg-white border border-slate-200 rounded-r-xl outline-none transition-all placeholder:text-slate-300 font-medium text-sm text-slate-800 focus:border-emerald-500"
-              />
+            {/* Selector Corredor */}
+            <div className="space-y-2">
+              <label className="text-[10px] font-black uppercase tracking-widest ml-1 text-emerald-100/60">¿Eres corredor inmobiliario?</label>
+              <div className={`grid grid-cols-2 bg-white/5 rounded-xl border border-white/10 overflow-hidden ${BOX_H}`}>
+                {['si', 'no'].map(opt => (
+                  <button key={opt} type="button" onClick={() => setFormData(prev => ({ ...prev, esCorredorInmobiliario: opt }))} className={`h-full text-[10px] font-black uppercase tracking-widest transition-all ${formData.esCorredorInmobiliario === opt ? 'bg-emerald-500 text-white shadow-lg' : 'text-white/30 hover:text-white hover:bg-white/5'}`}>
+                    {opt === 'si' ? 'Sí, lo soy' : 'No'}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
-        </div>
-      </div>
+        )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="space-y-2">
-          <label className="text-[10px] font-black uppercase tracking-widest ml-1 text-emerald-100/90">
-            Nivel Profesional
-          </label>
-          <div className="relative group">
-            <select
-              name="nivelProfesional"
-              required
-              value={formData.nivelProfesional}
-              onChange={handleChange}
-              className="w-full px-5 py-4 bg-white rounded-xl outline-none transition-all font-medium text-sm border border-slate-200 text-slate-800 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 appearance-none shadow-sm"
-            >
-              <option value="" disabled>
-                Selecciona una opción
-              </option>
-              <option value="Bachiller">Bachiller</option>
-              <option value="Universitario">Universitario</option>
-              <option value="Postgrado">Postgrado</option>
-            </select>
-            <ChevronDown size={16} className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-slate-400" />
+        {/* Botón Submit */}
+        <button type="submit" disabled={loading} className={`w-full ${BOX_H} rounded-xl flex items-center justify-center gap-3 transition-all hover:-translate-y-0.5 shadow-xl bg-emerald-600 text-white hover:bg-[#022c22] disabled:opacity-50 font-black uppercase tracking-widest text-xs`}>
+          {loading
+            ? <Loader2 size={18} className="animate-spin" />
+            : isJuridico
+              ? <><Building2 size={16} />Registrar Empresa<ArrowRight size={14} /></>
+              : (ctaLabel ?? 'Enviar Solicitud')
+          }
+        </button>
+
+        {errorMsg && (
+          <div className="flex items-center gap-2 text-red-100 bg-red-500/20 border border-red-400/40 p-4 rounded-xl text-xs font-bold justify-center">
+            <AlertCircle size={14} />{errorMsg}
+          </div>
+        )}
+
+        <div className="bg-emerald-400/5 border border-emerald-400/20 rounded-xl p-4 flex gap-3">
+          <div className="w-10 h-10 rounded-lg bg-emerald-400/10 flex items-center justify-center text-emerald-400 flex-shrink-0">
+            <Info size={20} />
+          </div>
+          <div>
+            <h4 className="text-[10px] font-black uppercase tracking-wider text-emerald-400 mb-1">Información Importante</h4>
+            <p className="text-[11px] text-emerald-100/60 leading-tight">
+              Tras completar este formulario, recibirás un correo electrónico para validar tu cuenta y 
+              <span className="text-white font-bold"> cargar tus documentos obligatorios (Cédula y Título)</span>.
+            </p>
           </div>
         </div>
 
-        <div className="space-y-2">
-          <label className="text-[10px] font-black uppercase tracking-widest ml-1 text-emerald-100/90">
-            ¿Ya eres corredor inmobiliario?
-          </label>
-          <div className="rounded-xl border border-slate-200 bg-white p-1 shadow-sm">
-            <div className="grid grid-cols-2 gap-1" role="radiogroup" aria-label="¿Ya eres corredor inmobiliario?">
-              {[
-                { value: 'si', label: 'Sí' },
-                { value: 'no', label: 'No' },
-              ].map(option => {
-                const selected = formData.esCorredorInmobiliario === option.value
-                return (
-                  <label
-                    key={option.value}
-                    className={[
-                      'h-[50px] rounded-lg cursor-pointer text-sm font-semibold flex items-center justify-center transition-all',
-                      selected
-                        ? 'bg-emerald-600 text-white shadow-md'
-                        : 'text-slate-600 hover:bg-slate-50',
-                    ].join(' ')}
-                  >
-                    <input
-                      type="radio"
-                      name="esCorredorInmobiliario"
-                      value={option.value}
-                      checked={selected}
-                      onChange={handleChange}
-                      required
-                      className="sr-only"
-                    />
-                    <span>{option.label}</span>
-                  </label>
-                )
-              })}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <button
-        type="submit"
-        disabled={loading}
-        className="w-full font-black py-5 rounded-xl flex items-center justify-center gap-3 transition-all hover:-translate-y-0.5 active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed uppercase tracking-widest text-xs shadow-xl bg-emerald-600 text-white shadow-emerald-600/30 hover:bg-[#022c22]"
-      >
-        {loading ? <Loader2 size={18} className="animate-spin" /> : (ctaLabel ?? 'Preinscribirme')}
-      </button>
-
-      {errorMsg && (
-        <div className="flex items-center gap-2 text-red-100 bg-red-500/20 border border-red-400/40 p-3 rounded-xl text-xs font-bold justify-center">
-          <AlertCircle size={14} />
-          <span>{errorMsg}</span>
-        </div>
-      )}
-
-      <p className="text-[10px] text-center uppercase tracking-[0.15em] font-bold text-emerald-100/80">
-        Esta solicitud no habilita módulos de estudio; solo registra la preinscripción y la futura certificación.
-      </p>
-    </form>
+        <p className="text-[9px] text-center uppercase tracking-[0.2em] font-bold text-emerald-100/40">
+          Cámara Inmobiliaria • Todos los derechos reservados • 2026
+        </p>
+      </form>
+    </div>
   )
 }

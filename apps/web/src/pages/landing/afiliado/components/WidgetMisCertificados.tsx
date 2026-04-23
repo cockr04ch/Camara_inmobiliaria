@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { Award, Copy, ExternalLink } from 'lucide-react'
-import DashboardCard from '@/pages/afiliado/components/DashboardCard'
+import DashboardCard from '@/pages/landing/afiliado/components/DashboardCard'
 import { useAuth } from '@/context/AuthContext'
 import { API_URL } from '@/config/env'
 

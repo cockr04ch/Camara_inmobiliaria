@@ -5,8 +5,10 @@ import { generarCredenciales } from '../lib/credentials.js';
 import {
   enviarCorreoVerificacion,
   enviarCorreoAprobacion,
-  notificarAdminNuevaAfiliacion
+  notificarAdminNuevaAfiliacion,
+  enviarCorreoInvitacionCorporativa
 } from '../lib/email.js';
+import { crearVerificacionPreinscripcionPrograma } from './academia.controller.js';
 import bcrypt from 'bcryptjs';
 
 /**
@@ -79,7 +81,9 @@ export const getAfiliadoById = async (req: Request, res: Response): Promise<void
 
     const result = await db.execute({
       sql: `SELECT id_agremiado, nombre_completo, email, cedula_rif, telefono,
-                   estatus, codigo_cibir, fecha_registro, inscripcion_pagada
+                   estatus, codigo_cibir, fecha_registro, inscripcion_pagada,
+                   tipo_afiliado, razon_social,
+                   url_cedula, url_titulo, url_cv
             FROM agremiados WHERE id_agremiado = ?`,
       args: [Number(id)],
     })
@@ -678,7 +682,8 @@ export const updateAfiliado = async (req: Request, res: Response) => {
       'nombre_completo', 'nombres', 'apellidos', 'cedula_rif', 
       'cedula_personal', 'email', 'telefono', 'razon_social',
       'direccion', 'fecha_nacimiento', 'nivel_academico', 'notas',
-      'estatus', 'cibir_convalidado', 'inscripcion_pagada', 'tipo_afiliado'
+      'estatus', 'cibir_convalidado', 'inscripcion_pagada', 'tipo_afiliado',
+      'url_cedula', 'url_titulo', 'url_cv'
     ];
 
     const setParts: string[] = [];
@@ -716,3 +721,343 @@ export const updateAfiliado = async (req: Request, res: Response) => {
     return res.status(500).json({ success: false, message: 'Error al actualizar afiliado' });
   }
 };
+
+// ═══════════════════════════════════════════════════════════════════
+// SISTEMA DE INVITACIONES CORPORATIVAS
+// ═══════════════════════════════════════════════════════════════════
+
+/**
+ * POST /api/afiliados/:id/invitacion
+ * Genera un link reutilizable de invitación para un afiliado corporativo.
+ * Puede ser llamado por admin o por el propio agremiado corporativo.
+ */
+export const generarInvitacionCorporativa = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const id = Number(req.params.id)
+    const requesterId = req.user?.id_agremiado
+    const requesterRole = req.user?.rol
+
+    if (requesterRole !== 'admin' && requesterRole !== 'super_admin' && requesterId !== id) {
+      res.status(403).json({ success: false, message: 'No tienes permiso para generar invitaciones para esta empresa.' }); return
+    }
+
+    if (!Number.isFinite(id)) {
+      res.status(400).json({ success: false, message: 'ID inválido' }); return
+    }
+
+    // Verificar que el agremiado existe y es Juridico
+    const corp = await db.execute({
+      sql: `SELECT id_agremiado, nombre_completo, razon_social, tipo_afiliado, estatus FROM agremiados WHERE id_agremiado = ? LIMIT 1`,
+      args: [id]
+    })
+    if (corp.rows.length === 0) {
+      res.status(404).json({ success: false, message: 'Afiliado corporativo no encontrado' }); return
+    }
+    const empresa = corp.rows[0] as any
+    if (empresa.tipo_afiliado !== 'Juridico') {
+      res.status(400).json({ success: false, message: 'Solo los afiliados corporativos pueden generar invitaciones' }); return
+    }
+
+    const token = randomUUID()
+    const nombreEmpresa = empresa.razon_social || empresa.nombre_completo
+    const diasExpiracion = req.body?.diasExpiracion ? Number(req.body.diasExpiracion) : null
+    const fechaExpiracion = diasExpiracion
+      ? new Date(Date.now() + diasExpiracion * 86400000).toISOString()
+      : null
+
+    await db.execute({
+      sql: `INSERT INTO invitaciones_corporativas (id_agremiado_corp, token, nombre_empresa, activo, fecha_expiracion)
+            VALUES (?, ?, ?, 1, ?)`,
+      args: [id, token, nombreEmpresa, fechaExpiracion]
+    })
+
+    res.status(201).json({
+      success: true,
+      message: 'Link de invitación generado correctamente.',
+      data: { token, nombreEmpresa, fechaExpiracion }
+    })
+  } catch (error) {
+    console.error('generarInvitacionCorporativa:', error)
+    res.status(500).json({ success: false, message: 'Error al generar invitación' })
+  }
+}
+
+/**
+ * GET /api/afiliados/:id/invitaciones
+ * Lista todos los links de invitación de un afiliado corporativo.
+ */
+export const listarInvitacionesCorporativas = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const id = Number(req.params.id)
+    const requesterId = req.user?.id_agremiado
+    const requesterRole = req.user?.rol
+
+    if (requesterRole !== 'admin' && requesterRole !== 'super_admin' && requesterId !== id) {
+      res.status(403).json({ success: false, message: 'Acceso denegado.' }); return
+    }
+
+    const result = await db.execute({
+      sql: `SELECT ic.*, 
+              (SELECT COUNT(*) FROM agremiados WHERE id_agremiado_corp = ic.id_agremiado_corp) as total_afiliados
+            FROM invitaciones_corporativas ic
+            WHERE ic.id_agremiado_corp = ?
+            ORDER BY ic.creado_en DESC`,
+      args: [id]
+    })
+    res.json({ success: true, data: result.rows })
+  } catch (error) {
+    console.error('listarInvitacionesCorporativas:', error)
+    res.status(500).json({ success: false, message: 'Error al listar invitaciones' })
+  }
+}
+
+/**
+ * DELETE /api/afiliados/:id/invitaciones/:tokenId
+ * Desactiva (revoca) un link de invitación.
+ */
+export const revocarInvitacionCorporativa = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const tokenId = Number(req.params.tokenId)
+    await db.execute({
+      sql: `UPDATE invitaciones_corporativas SET activo = 0 WHERE id_invitacion = ?`,
+      args: [tokenId]
+    })
+    res.json({ success: true, message: 'Invitación revocada.' })
+  } catch (error) {
+    console.error('revocarInvitacionCorporativa:', error)
+    res.status(500).json({ success: false, message: 'Error al revocar invitación' })
+  }
+}
+
+/**
+ * GET /api/afiliados/:id/afiliados-corp
+ * Lista los afiliados individuales vinculados a un afiliado corporativo.
+ */
+export const listarAfiliadosCorporativos = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const id = Number(req.params.id)
+    const requesterId = req.user?.id_agremiado
+    const requesterRole = req.user?.rol
+
+    if (requesterRole !== 'admin' && requesterRole !== 'super_admin' && requesterId !== id) {
+      res.status(403).json({ success: false, message: 'Acceso denegado.' }); return
+    }
+
+    const result = await db.execute({
+      sql: `SELECT 
+              id_agremiado, 
+              nombre_completo, 
+              cedula_rif, 
+              email, 
+              telefono, 
+              estatus, 
+              fecha_registro,
+              'Aprobado' as fase
+            FROM agremiados
+            WHERE id_agremiado_corp = ?
+            
+            UNION ALL
+            
+            SELECT 
+              NULL as id_agremiado,
+              e.nombre_completo,
+              e.cedula_rif,
+              e.email,
+              e.telefono,
+              ic.estatus,
+              ic.creado_en as fecha_registro,
+              'Solicitud' as fase
+            FROM inscripciones_cursos ic
+            JOIN estudiantes e ON e.id_estudiante = ic.id_estudiante
+            WHERE ic.id_agremiado_corp = ? AND ic.programa_codigo = 'AFILIACION'
+              AND NOT EXISTS (SELECT 1 FROM agremiados a WHERE a.email = e.email)
+            
+            ORDER BY fecha_registro DESC`,
+      args: [id, id]
+    })
+    res.json({ success: true, data: result.rows })
+  } catch (error) {
+    console.error('listarAfiliadosCorporativos:', error)
+    res.status(500).json({ success: false, message: 'Error al listar afiliados' })
+  }
+}
+
+/**
+ * POST /api/afiliados/:id/registrar-miembro
+ * Registro directo de un miembro por parte de su empresa.
+ */
+export const registrarMiembroDirecto = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const idCorp = Number(req.params.id)
+    const requesterId = req.user?.id_agremiado
+    const requesterRole = req.user?.rol
+
+    if (requesterRole !== 'admin' && requesterRole !== 'super_admin' && requesterId !== idCorp) {
+      res.status(403).json({ success: false, message: 'Acceso denegado.' }); return
+    }
+
+    const { nombreCompleto, cedulaRif, email, telefono, nivelProfesional, esCorredorInmobiliario } = req.body
+
+    if (!nombreCompleto || !cedulaRif || !email) {
+      res.status(400).json({ success: false, message: 'Nombre, Cédula y Email son requeridos.' }); return
+    }
+
+    // Obtener info de la empresa
+    const corp = await db.execute({
+      sql: `SELECT nombre_completo, razon_social FROM agremiados WHERE id_agremiado = ? LIMIT 1`,
+      args: [idCorp]
+    })
+    if (corp.rows.length === 0) {
+      res.status(404).json({ success: false, message: 'Empresa no encontrada.' }); return
+    }
+    const empresa = corp.rows[0] as any
+
+    // Verificar si ya existe
+    const existing = await db.execute({
+      sql: `SELECT id_agremiado FROM agremiados WHERE email = ? OR cedula_rif = ? LIMIT 1`,
+      args: [email, cedulaRif]
+    })
+    if (existing.rows.length > 0) {
+      res.status(400).json({ success: false, message: 'Ya existe un afiliado con ese email o cédula.' }); return
+    }
+
+    // 3. Crear Verificación de Preinscripción ( Academy Flow )
+    const { token: tokenVerif, fechaExpiracion } = await crearVerificacionPreinscripcionPrograma({
+      nombreCompleto,
+      cedulaRif,
+      email,
+      telefono: telefono || null,
+      programaCodigo: 'AFILIACION',
+      tipoAfiliado: 'Natural',
+      nivelProfesional: nivelProfesional || null,
+      esCorredorInmobiliario: !!esCorredorInmobiliario,
+      id_agremiado_corp: idCorp
+    });
+
+    // 4. Enviar Email con link a Academia
+    const nombreEmpresa = empresa.razon_social || empresa.nombre_completo
+    await enviarCorreoInvitacionCorporativa({
+      nombre: nombreCompleto,
+      emailOriginal: email,
+      nombreEmpresa,
+      token: tokenVerif
+    })
+
+    res.status(201).json({ success: true, message: 'Miembro registrado correctamente. Se ha enviado un correo de invitación.' })
+  } catch (error) {
+    console.error('registrarMiembroDirecto:', error)
+    res.status(500).json({ success: false, message: 'Error interno al registrar miembro.' })
+  }
+}
+
+/**
+ * GET /api/public/invitaciones/:token
+ * Valida un token de invitación y devuelve info de la empresa.
+ */
+export const publicValidarInvitacion = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const token = String(req.params.token ?? '').trim()
+    const result = await db.execute({
+      sql: `SELECT ic.*, a.estatus as estatus_empresa
+            FROM invitaciones_corporativas ic
+            JOIN agremiados a ON a.id_agremiado = ic.id_agremiado_corp
+            WHERE ic.token = ? AND ic.activo = 1 LIMIT 1`,
+      args: [token]
+    })
+    if (result.rows.length === 0) {
+      res.status(404).json({ success: false, message: 'Link de invitación inválido o desactivado.' }); return
+    }
+    const inv = result.rows[0] as any
+    if (inv.fecha_expiracion && new Date(inv.fecha_expiracion) < new Date()) {
+      res.status(400).json({ success: false, message: 'Este link de invitación ha expirado.' }); return
+    }
+    res.json({
+      success: true,
+      data: {
+        nombreEmpresa: inv.nombre_empresa,
+        idEmpresa: inv.id_agremiado_corp,
+        token: inv.token
+      }
+    })
+  } catch (error) {
+    console.error('publicValidarInvitacion:', error)
+    res.status(500).json({ success: false, message: 'Error al validar invitación' })
+  }
+}
+
+/**
+ * POST /api/public/invitaciones/:token/registrar
+ * Registra un afiliado individual a través de un link corporativo.
+ */
+export const publicRegistrarPorInvitacion = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const token = String(req.params.token ?? '').trim()
+
+    // Validar token
+    const invRes = await db.execute({
+      sql: `SELECT * FROM invitaciones_corporativas WHERE token = ? AND activo = 1 LIMIT 1`,
+      args: [token]
+    })
+    if (invRes.rows.length === 0) {
+      res.status(404).json({ success: false, message: 'Link de invitación inválido o desactivado.' }); return
+    }
+    const inv = invRes.rows[0] as any
+    if (inv.fecha_expiracion && new Date(inv.fecha_expiracion) < new Date()) {
+      res.status(400).json({ success: false, message: 'Este link de invitación ha expirado.' }); return
+    }
+
+    const nombreCompleto = typeof req.body?.nombreCompleto === 'string' ? req.body.nombreCompleto.trim() : ''
+    const cedulaRif = typeof req.body?.cedulaRif === 'string' ? req.body.cedulaRif.trim() : null
+    const email = typeof req.body?.email === 'string' ? req.body.email.trim().toLowerCase() : ''
+    const telefono = typeof req.body?.telefono === 'string' ? req.body.telefono.trim() : null
+    const nivelProfesional = typeof req.body?.nivelProfesional === 'string' ? req.body.nivelProfesional.trim() : null
+    const esCorredorInmobiliario = req.body?.esCorredorInmobiliario === true || req.body?.esCorredorInmobiliario === 'si' ? 1 : 0
+
+    const NIVELES_VALIDOS = new Set(['Bachiller', 'TSU', 'Universitario', 'Postgrado'])
+    if (!nombreCompleto || !email || !cedulaRif) {
+      res.status(400).json({ success: false, message: 'Nombre completo, cédula y email son obligatorios.' }); return
+    }
+    if (nivelProfesional && !NIVELES_VALIDOS.has(nivelProfesional)) {
+      res.status(400).json({ success: false, message: 'Nivel profesional inválido.' }); return
+    }
+
+    // Verificar duplicados
+    const dup = await db.execute({
+      sql: `SELECT id_agremiado FROM agremiados WHERE email = ? OR cedula_rif = ? LIMIT 1`,
+      args: [email, cedulaRif]
+    })
+    if (dup.rows.length > 0) {
+      res.status(409).json({ success: false, message: 'Ya existe un afiliado con ese email o cédula.' }); return
+    }
+
+    // 3. Crear Verificación de Preinscripción ( Academy Flow )
+    const { token: tokenVerif, fechaExpiracion } = await crearVerificacionPreinscripcionPrograma({
+      nombreCompleto,
+      cedulaRif,
+      email,
+      telefono: telefono || null,
+      programaCodigo: 'AFILIACION',
+      tipoAfiliado: 'Natural',
+      nivelProfesional: nivelProfesional || null,
+      esCorredorInmobiliario: !!esCorredorInmobiliario,
+      id_agremiado_corp: inv.id_agremiado_corp
+    });
+
+    // 4. Enviar Email con link a Academia
+    await enviarCorreoInvitacionCorporativa({
+      nombre: nombreCompleto,
+      emailOriginal: email,
+      nombreEmpresa: inv.nombre_empresa,
+      token: tokenVerif
+    })
+
+    res.status(201).json({
+      success: true,
+      message: `Tu solicitud de afiliación a ${inv.nombre_empresa} fue recibida. Revisa tu correo para completar tu perfil y cargar documentos.`,
+      data: { email, token: tokenVerif }
+    })
+  } catch (error) {
+    console.error('publicRegistrarPorInvitacion:', error)
+    res.status(500).json({ success: false, message: 'Error al procesar el registro' })
+  }
+}

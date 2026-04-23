@@ -17,7 +17,7 @@ export const DEFAULT_NAV_MENU = [
     items: [
       { label: 'Miembros', path: '/miembros' },
       { label: 'Beneficios', path: '/beneficios' },
-      { label: 'Requisitos', path: '/requisitos' },
+      { label: 'Afíliate', path: '/afiliate' },
     ],
     Tpath: '',
   },

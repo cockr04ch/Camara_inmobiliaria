@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { User, Mail, CheckCircle2, Loader2, AlertCircle, Hash, ChevronDown } from 'lucide-react';
+import { User, Mail, CheckCircle2, Loader2, AlertCircle, ChevronDown } from 'lucide-react';
 import { API_URL } from '@/config/env'
 
 const COUNTRIES = [
@@ -150,7 +150,6 @@ const PreinscripcionForm = () => {
               <ChevronDown size={14} className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-slate-400" />
             </div>
             <div className="relative flex-1">
-              <Hash size={17} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-emerald-500 transition-colors" />
               <input
                 type="text"
                 name="cedulaNumber"
@@ -158,7 +157,7 @@ const PreinscripcionForm = () => {
                 value={formData.cedulaNumber}
                 onChange={handleChange}
                 placeholder="00000000"
-                className="w-full pl-12 pr-5 py-4 bg-white border border-slate-200 rounded-r-xl outline-none transition-all placeholder:text-slate-300 font-medium text-sm text-slate-800 focus:border-emerald-500"
+                className="w-full px-5 py-4 bg-white border border-slate-200 rounded-r-xl outline-none transition-all placeholder:text-slate-300 font-medium text-sm text-slate-800 focus:border-emerald-500"
               />
             </div>
           </div>

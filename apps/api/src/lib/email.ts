@@ -31,6 +31,52 @@ export const enviarCorreoVerificacion = async (nombre: string, emailOriginal: st
   return data
 }
 
+/** Correo para afiliados registrados vía invitación corporativa */
+export const enviarCorreoInvitacionCorporativa = async (params: {
+  nombre: string,
+  emailOriginal: string,
+  nombreEmpresa: string,
+  token: string
+}) => {
+  const { nombre, emailOriginal, nombreEmpresa, token } = params
+  const enlaceVerificacion = `${env.APP_URL}/cursos/verificar?token=${token}`
+  
+  const { data, error } = await resend.emails.send({
+    from: DEFAULT_FROM,
+    to: emailOriginal,
+    subject: `Invitación de ${nombreEmpresa} — Cámara Inmobiliaria`,
+    html: `
+      <div style="font-family:sans-serif;max-width:600px;margin:0 auto;color:#333;border:1px solid #f0f0f0;border-radius:16px;padding:32px;">
+        <div style="text-align:center;margin-bottom:24px;">
+          <div style="background-color:#ecfdf5;color:#059669;display:inline-block;padding:8px 16px;border-radius:99px;font-size:12px;font-weight:bold;text-transform:uppercase;letter-spacing:0.1em;">
+            Invitación Corporativa
+          </div>
+        </div>
+        <h2 style="color:#111827;text-align:center;margin-top:0;">¡Hola, ${nombre}!</h2>
+        <p style="text-align:center;color:#4b5563;font-size:16px;">
+          La empresa <strong>${nombreEmpresa}</strong> te ha registrado como parte de su equipo en la <strong>Cámara Inmobiliaria del Estado Bolívar</strong>.
+        </p>
+        <div style="background-color:#f9fafb;border-radius:12px;padding:24px;margin:32px 0;text-align:center;">
+          <p style="margin-top:0;font-weight:bold;color:#1f2937;">Para completar tu perfil y cargar tus documentos obligatorios (Cédula y Título):</p>
+          <a href="${enlaceVerificacion}" style="background-color:#16a34a;color:white;padding:14px 32px;text-decoration:none;border-radius:10px;font-weight:bold;display:inline-block;margin-top:8px;box-shadow:0 4px 6px -1px rgba(0,0,0,0.1);">
+            Completar mi Perfil
+          </a>
+          <p style="font-size:12px;color:#9ca3af;margin-top:16px;">O copia este enlace: ${enlaceVerificacion}</p>
+        </div>
+        <p style="font-size:14px;color:#6b7280;line-height:1.5;">
+          Una vez confirmado, tu solicitud entrará en el proceso de revisión de la Cámara. Recibirás actualizaciones sobre el estatus de tu afiliación por este medio.
+        </p>
+        <hr style="border:none;border-top:1px solid #f3f4f6;margin:32px 0;"/>
+        <p style="font-size:12px;color:#9ca3af;text-align:center;margin-bottom:0;">
+          &copy; 2026 Cámara Inmobiliaria del Estado Bolívar. Todos los derechos reservados.
+        </p>
+      </div>
+    `
+  })
+  if (error) { console.error('enviarCorreoInvitacionCorporativa:', error); throw error }
+  return data
+}
+
 /** Confirmación de preinscripción a programas principales (PADI/PEGI/PREANI/CIBIR) */
 export const enviarCorreoConfirmacionPreinscripcionPrograma = async (params: {
   nombre: string

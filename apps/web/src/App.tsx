@@ -27,7 +27,8 @@ import SetupPasswordPage from '@/pages/auth/SetupPasswordPage'
 import LobbyPage from '@/pages/lobby/LobbyPage'
 import ComprobantePublicoPage from '@/pages/comprobante/ComprobantePublicoPage'
 import MarcoLegalPage from '@/pages/landing/marco-legal/MarcoLegalPage'
-import RequisitosPage from '@/pages/landing/afiliados/RequisitosPage'
+import RequisitosPage from '@/pages/landing/afiliado/RequisitosPage'
+import InvitacionCorporativaPage from '@/pages/landing/afiliado/InvitacionCorporativaPage'
 
 function PreservingQueryNavigate({ to }: { to: string }) {
   const [searchParams] = useSearchParams()
@@ -60,9 +61,11 @@ export default function App() {
           <Route path='/convenios' element={<Navigate to='/marco-legal/normas-y-procedimientos' replace />} />
           <Route path='/normativas' element={<Navigate to='/marco-legal/leyes-y-decretos' replace />} />
           <Route path='/miembros'      element={<DirectorioPage />} />
-          <Route path='/requisitos'    element={<RequisitosPage />} />
+          <Route path='/afiliate'      element={<RequisitosPage />} />
+          <Route path='/requisitos'    element={<Navigate to='/afiliate' replace />} />
           <Route path='/comprobante/:codigo' element={<ComprobantePublicoPage />} />
           <Route path='/establecer-contrasena' element={<SetupPasswordPage />} />
+          <Route path='/afiliacion/invitacion/:token' element={<InvitacionCorporativaPage />} />
 
           {/* Rutas Dinámicas */}
           <Route path='/preani' element={<PreaniPage />} />

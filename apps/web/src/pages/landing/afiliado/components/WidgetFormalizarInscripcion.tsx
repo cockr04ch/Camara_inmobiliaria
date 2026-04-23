@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { CreditCard, UploadCloud, Loader2, Info } from 'lucide-react';
-import DashboardCard from '@/pages/afiliado/components/DashboardCard';
+import DashboardCard from '@/pages/landing/afiliado/components/DashboardCard';
 import { API_URL } from '@/config/env';
 import { useAuth } from '@/context/AuthContext';
 

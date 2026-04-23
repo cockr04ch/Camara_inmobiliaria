@@ -17,6 +17,9 @@ type Row = {
   entrevista_fecha?: string
   entrevista_hora?: string
   entrevista_lugar?: string
+  estudiante_url_cedula?: string
+  estudiante_url_titulo?: string
+  estudiante_url_cv?: string
 }
 
 export default function PreinscripcionesPrincipalesPanel({
@@ -326,6 +329,48 @@ export default function PreinscripcionesPrincipalesPanel({
                 <span className="text-sm text-slate-700 font-medium break-all">{new Date(selected.creado_en).toLocaleString('es-ES')}</span>
               </div>
             </div>
+
+            {/* Documentos */}
+            {(selected.estudiante_url_cedula || selected.estudiante_url_titulo || selected.estudiante_url_cv) && (
+              <div className="bg-white rounded-2xl p-4 border border-gray-100 flex flex-col gap-3">
+                <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Documentación Adjunta</span>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                  {selected.estudiante_url_cedula && (
+                    <a 
+                      href={selected.estudiante_url_cedula} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-2 px-3 py-2 bg-emerald-50 text-emerald-700 rounded-xl text-[10px] font-black uppercase tracking-wider hover:bg-emerald-100 transition-colors"
+                    >
+                      <svg viewBox="0 0 24 24" className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4M10 17l5-5-5-5M13.8 12H3" /></svg>
+                      Ver Cédula
+                    </a>
+                  )}
+                  {selected.estudiante_url_titulo && (
+                    <a 
+                      href={selected.estudiante_url_titulo} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-2 px-3 py-2 bg-blue-50 text-blue-700 rounded-xl text-[10px] font-black uppercase tracking-wider hover:bg-blue-100 transition-colors"
+                    >
+                      <svg viewBox="0 0 24 24" className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4M10 17l5-5-5-5M13.8 12H3" /></svg>
+                      Ver Título
+                    </a>
+                  )}
+                  {selected.estudiante_url_cv && (
+                    <a 
+                      href={selected.estudiante_url_cv} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-2 px-3 py-2 bg-slate-100 text-slate-700 rounded-xl text-[10px] font-black uppercase tracking-wider hover:bg-slate-200 transition-colors"
+                    >
+                      <svg viewBox="0 0 24 24" className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4M10 17l5-5-5-5M13.8 12H3" /></svg>
+                      Ver CV
+                    </a>
+                  )}
+                </div>
+              </div>
+            )}
 
             {['Preinscrito', 'Entrevista'].includes(selected.estatus) && (
               <div className="bg-white rounded-2xl p-4 border border-gray-100 flex flex-col gap-2">

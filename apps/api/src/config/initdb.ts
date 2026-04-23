@@ -58,10 +58,31 @@ const statements = [
     cibir_convalidado           INTEGER     NOT NULL DEFAULT 0
                                 CHECK (cibir_convalidado IN (0, 1)),
     inscripcion_pagada          INTEGER     NOT NULL DEFAULT 0,
+    -- Corporativo: afiliados individuales vinculados a esta empresa
+    id_agremiado_corp           INTEGER     REFERENCES agremiados(id_agremiado) ON DELETE SET NULL,
+    representante_legal         TEXT,
     fecha_registro              TEXT        NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ','now')),
     fecha_ultimo_cambio_estatus TEXT,
+    url_cedula                  TEXT,
+    url_titulo                  TEXT,
+    url_cv                      TEXT,
     CONSTRAINT chk_email_formato CHECK (email LIKE '%@%.%')
   )`,
+
+  // ── Invitaciones corporativas (links reutilizables para afiliados individuales) ──
+  `CREATE TABLE IF NOT EXISTS invitaciones_corporativas (
+    id_invitacion     INTEGER  PRIMARY KEY,
+    id_agremiado_corp INTEGER  NOT NULL REFERENCES agremiados(id_agremiado) ON DELETE CASCADE,
+    token             TEXT     UNIQUE NOT NULL,
+    nombre_empresa    TEXT     NOT NULL,
+    activo            INTEGER  NOT NULL DEFAULT 1
+                      CHECK (activo IN (0, 1)),
+    fecha_expiracion  TEXT,
+    creado_en         TEXT     NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ','now'))
+  )`,
+
+  `CREATE INDEX IF NOT EXISTS idx_invitaciones_corp ON invitaciones_corporativas(id_agremiado_corp)`,
+  `CREATE INDEX IF NOT EXISTS idx_invitaciones_token ON invitaciones_corporativas(token)`,
 
   // ===========================================================
   // FASE 1.5 — ESTUDIANTES (REGULARES / NO NECESARIAMENTE CIBIR)
@@ -75,13 +96,16 @@ const statements = [
     email             TEXT        NOT NULL,
     telefono          TEXT,
     nivel_profesional TEXT
-                    CHECK (nivel_profesional IN ('Bachiller','Universitario','Postgrado')),
+                    CHECK (nivel_profesional IS NULL OR nivel_profesional IN ('Bachiller','TSU','Universitario','Postgrado')),
     es_corredor_inmobiliario INTEGER NOT NULL DEFAULT 0
                     CHECK (es_corredor_inmobiliario IN (0, 1)),
     tipo              TEXT        NOT NULL DEFAULT 'Regular'
                       CHECK (tipo IN ('Regular','Agremiado')),
     creado_en         TEXT        NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ','now')),
     actualizado_en    TEXT,
+    url_cedula        TEXT,
+    url_titulo        TEXT,
+    url_cv            TEXT,
     CONSTRAINT fk_estudiante_agremiado
       FOREIGN KEY (id_agremiado) REFERENCES agremiados(id_agremiado)
       ON DELETE SET NULL ON UPDATE CASCADE,
@@ -111,10 +135,19 @@ const statements = [
     telefono            TEXT,
     programa_codigo     TEXT NOT NULL
                       CHECK (programa_codigo IN ('PADI','PEGI','PREANI','CIBIR', 'AFILIACION')),
-    nivel_profesional   TEXT NOT NULL
-                      CHECK (nivel_profesional IN ('Bachiller','Universitario','Postgrado')),
-    es_corredor_inmobiliario INTEGER NOT NULL
-                      CHECK (es_corredor_inmobiliario IN (0, 1)),
+    tipo_afiliado       TEXT NOT NULL DEFAULT 'Natural',
+    -- Campos opcionales: solo aplican a personas naturales / no-corporativos
+    nivel_profesional   TEXT
+                      CHECK (nivel_profesional IS NULL OR nivel_profesional IN ('Bachiller','TSU','Universitario','Postgrado')),
+    es_corredor_inmobiliario INTEGER
+                      CHECK (es_corredor_inmobiliario IS NULL OR es_corredor_inmobiliario IN (0, 1)),
+    -- Campos exclusivos para Corporativo
+    razon_social        TEXT,
+    representante_legal TEXT,
+    url_cedula          TEXT,
+    url_titulo          TEXT,
+    url_cv              TEXT,
+    id_agremiado_corp   INTEGER, -- Link a la empresa que invita
     fecha_expiracion    TEXT NOT NULL,
     creado_en           TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ','now'))
   )`,
@@ -211,6 +244,7 @@ const statements = [
     nota_admin         TEXT,
     asignado_por       INTEGER, -- users.id
     aprobado_por       INTEGER, -- users.id
+    id_agremiado_corp  INTEGER, -- Link a la empresa (para AFILIACION_CORP)
     creado_en          TEXT      NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ','now')),
     actualizado_en     TEXT,
     completado         INTEGER     NOT NULL DEFAULT 0
@@ -666,9 +700,91 @@ async function migrateLegacyColumns(): Promise<void> {
       await db.execute(`ALTER TABLE agremiados ADD COLUMN tipo_afiliado TEXT NOT NULL DEFAULT 'Natural'`)
       console.log('  · migrate: agremiados.tipo_afiliado')
     }
+    if (!cols.has('representante_legal')) {
+      await db.execute(`ALTER TABLE agremiados ADD COLUMN representante_legal TEXT`)
+      console.log('  · migrate: agremiados.representante_legal')
+    }
+    if (!cols.has('id_agremiado_corp')) {
+      await db.execute(`ALTER TABLE agremiados ADD COLUMN id_agremiado_corp INTEGER REFERENCES agremiados(id_agremiado) ON DELETE SET NULL`)
+      console.log('  · migrate: agremiados.id_agremiado_corp')
+    }
 
     // Migración de estados de agremiados
     await migrateAgremiadosEstatusCheck()
+
+    // Nuevas columnas de documentos
+    if (!cols.has('url_cedula')) {
+      await db.execute(`ALTER TABLE agremiados ADD COLUMN url_cedula TEXT`)
+      console.log('  · migrate: agremiados.url_cedula')
+    }
+    if (!cols.has('url_titulo')) {
+      await db.execute(`ALTER TABLE agremiados ADD COLUMN url_titulo TEXT`)
+      console.log('  · migrate: agremiados.url_titulo')
+    }
+    if (!cols.has('url_cv')) {
+      await db.execute(`ALTER TABLE agremiados ADD COLUMN url_cv TEXT`)
+      console.log('  · migrate: agremiados.url_cv')
+    }
+  }
+
+  if (await tableExists('estudiantes')) {
+    const cols = await tableColumnNames('estudiantes')
+    if (!cols.has('url_cedula')) {
+      await db.execute(`ALTER TABLE estudiantes ADD COLUMN url_cedula TEXT`)
+      console.log('  · migrate: estudiantes.url_cedula')
+    }
+    if (!cols.has('url_titulo')) {
+      await db.execute(`ALTER TABLE estudiantes ADD COLUMN url_titulo TEXT`)
+      console.log('  · migrate: estudiantes.url_titulo')
+    }
+    if (!cols.has('url_cv')) {
+      await db.execute(`ALTER TABLE estudiantes ADD COLUMN url_cv TEXT`)
+      console.log('  · migrate: estudiantes.url_cv')
+    }
+  }
+
+  if (await tableExists('verificaciones_preinscripciones')) {
+    const cols = await tableColumnNames('verificaciones_preinscripciones')
+    if (!cols.has('url_cedula')) {
+      await db.execute(`ALTER TABLE verificaciones_preinscripciones ADD COLUMN url_cedula TEXT`)
+      console.log('  · migrate: verificaciones_preinscripciones.url_cedula')
+    }
+    if (!cols.has('url_titulo')) {
+      await db.execute(`ALTER TABLE verificaciones_preinscripciones ADD COLUMN url_titulo TEXT`)
+      console.log('  · migrate: verificaciones_preinscripciones.url_titulo')
+    }
+    if (!cols.has('url_cv')) {
+      await db.execute(`ALTER TABLE verificaciones_preinscripciones ADD COLUMN url_cv TEXT`)
+      console.log('  · migrate: verificaciones_preinscripciones.url_cv')
+    }
+    if (!cols.has('tipo_afiliado')) {
+      await db.execute(`ALTER TABLE verificaciones_preinscripciones ADD COLUMN tipo_afiliado TEXT NOT NULL DEFAULT 'Natural'`)
+      console.log('  · migrate: verificaciones_preinscripciones.tipo_afiliado')
+    }
+    if (!cols.has('razon_social')) {
+      await db.execute(`ALTER TABLE verificaciones_preinscripciones ADD COLUMN razon_social TEXT`)
+      console.log('  · migrate: verificaciones_preinscripciones.razon_social')
+    }
+    if (!cols.has('representante_legal')) {
+      await db.execute(`ALTER TABLE verificaciones_preinscripciones ADD COLUMN representante_legal TEXT`)
+      console.log('  · migrate: verificaciones_preinscripciones.representante_legal')
+    }
+  }
+
+  // Tabla de invitaciones corporativas
+  if (!(await tableExists('invitaciones_corporativas'))) {
+    console.log('  · migrate: invitaciones_corporativas (creando tabla)')
+    await db.execute(`CREATE TABLE IF NOT EXISTS invitaciones_corporativas (
+      id_invitacion     INTEGER  PRIMARY KEY,
+      id_agremiado_corp INTEGER  NOT NULL,
+      token             TEXT     UNIQUE NOT NULL,
+      nombre_empresa    TEXT     NOT NULL,
+      activo            INTEGER  NOT NULL DEFAULT 1,
+      fecha_expiracion  TEXT,
+      creado_en         TEXT     NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ','now'))
+    )`)
+    await db.execute(`CREATE INDEX IF NOT EXISTS idx_invitaciones_corp ON invitaciones_corporativas(id_agremiado_corp)`)
+    await db.execute(`CREATE INDEX IF NOT EXISTS idx_invitaciones_token ON invitaciones_corporativas(token)`)
   }
 
   if (!(await tableExists('cms_normativas'))) {

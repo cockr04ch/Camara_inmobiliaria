@@ -16,9 +16,9 @@ export const NAV_ITEMS = [
   {
     title: 'Afiliados',
     items: [
+      { label: 'Afíliate', path: '/afiliate' },
       { label: 'Miembros', path: '/miembros' },
       { label: 'Beneficios', path: '/beneficios' },
-      { label: 'Afíliate', path: '/requisitos' },
     ],
     Tpath: '',
   },

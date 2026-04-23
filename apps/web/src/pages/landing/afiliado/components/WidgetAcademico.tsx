@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { GraduationCap, ArrowRight, ChevronRight } from 'lucide-react';
 import { SkeletonCard } from '@/components/Skeleton';
-import DashboardCard from '@/pages/afiliado/components/DashboardCard';
+import DashboardCard from '@/pages/landing/afiliado/components/DashboardCard';
 import { useAuth } from '@/context/AuthContext';
 import { API_URL } from '@/config/env';
 import Swal from 'sweetalert2';
