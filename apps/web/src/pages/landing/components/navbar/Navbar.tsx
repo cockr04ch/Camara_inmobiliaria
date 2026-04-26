@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '@/context/AuthContext'
-import logo from '@/assets/Logo.png'
+import logo from '@/assets/Logo3.png'
 import LoginModal from '@/pages/landing/components/LoginModal'
 import NavItem from './NavItem'
 import { NAV_ITEMS } from './navData'
@@ -24,8 +24,9 @@ const Navbar = ({ darkMode, setDarkMode, setIsSesionModalOpen, setIsRegisterModa
   return (
     <>
       <nav
-        className={`${darkMode ? 'dark bg-[#011a14]/95 border-white/5' : 'bg-linear-to-b from-[#034232] to-[#022c22]/98 border-b border-white/10'
-          } relative flex items-center justify-between px-6 py-3 lg:px-12 backdrop-blur-md sticky top-0 z-50 border-b transition-colors duration-300`}
+        className={`${
+        darkMode ? "dark bg-[#011a14]/90 border-white/10" : " bg-[#011a14]/90 border-white/10"
+      } flex items-center justify-between px-6 py-5 lg:px-20 backdrop-blur-md sticky top-0 z-50 border-b`}
       >
         {/* 1. ZONA IZQUIERDA: LOGO */}
         <div className="relative z-10 shrink-0">
@@ -33,12 +34,8 @@ const Navbar = ({ darkMode, setDarkMode, setIsSesionModalOpen, setIsRegisterModa
             <img
               src={logo}
               alt='Cámara Inmobiliaria del Estado Bolívar (CIBIR) - Logo'
-              className='h-16 w-auto object-contain'
+              className='h-25 w-auto object-contain'
             />
-            <div className='hidden sm:block leading-tight'>
-              <p className='text-white font-bold text-sm tracking-widest uppercase'>Cámara Inmobiliaria</p>
-              <p className='text-emerald-500 text-[14px] font-bold'>de Bolívar</p>
-            </div>
           </Link>
         </div>
 
@@ -78,13 +75,11 @@ const Navbar = ({ darkMode, setDarkMode, setIsSesionModalOpen, setIsRegisterModa
           ) : (
             /* --- ESTADO: SIN SESIÓN --- */
             <>
+              {/* Botón de Login estilo Componente B */}
               <button
                 onClick={() => setShowLoginModal(true)}
-                className='hidden md:flex items-center gap-1.5 px-4 py-2 text-white text-xs font-bold hover:text-emerald-200 hover:bg-emerald-800/40 rounded-full transition-all cursor-pointer'
+                className='px-6 py-2 bg-emerald-500 text-white dark:text-[#022c22] rounded-full text-xs font-bold hover:shadow-lg hover:shadow-emerald-500/30 transition-all'
               >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
-                </svg>
                 {labelLogin}
               </button>
             </>
